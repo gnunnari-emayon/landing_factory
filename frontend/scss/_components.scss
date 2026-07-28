@@ -1,0 +1,48 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-height: 44px; /* WCAG AA touch target */
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+  color: #ffffff;
+  box-shadow: var(--shadow-md);
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+.card {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-gastronomia { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+.badge-automotriz { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+.badge-salud_belleza { background: rgba(236, 72, 153, 0.2); color: #ec4899; }
+.badge-logistica { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+.badge-tecnologia { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+.badge-retail { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
+.badge-corporativo { background: rgba(148, 163, 184, 0.2); color: #94a3b8; }
