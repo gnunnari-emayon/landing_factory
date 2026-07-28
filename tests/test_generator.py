@@ -1,5 +1,11 @@
 import unittest
-from generator import inferir_categoria_por_rubro, generar_landing_page
+import sys
+import os
+
+# Incluir la raíz del proyecto en PYTHONPATH
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from backend.services.generator import inferir_categoria_por_rubro, generar_landing_page
 
 class TestGeneratorEngine(unittest.TestCase):
 
@@ -31,8 +37,8 @@ class TestGeneratorEngine(unittest.TestCase):
 
     def test_generar_landing_page_fallback(self):
         res = generar_landing_page("Café Central", "Rubro Gastronómico")
-        self.assertEqual(res["categoria_visual"], "gastronomia")
-        self.assertEqual(res["status"], "success")
+        self.assertEqual(res.categoria_visual, "gastronomia")
+        self.assertEqual(res.status, "success")
 
 if __name__ == "__main__":
     unittest.main()
