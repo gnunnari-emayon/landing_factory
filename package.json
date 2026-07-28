@@ -1,0 +1,14 @@
+{
+  "name": "nicho-landing-factory",
+  "version": "1.0.0",
+  "description": "Plataforma de generación de landing pages por nicho y CRM commercial",
+  "main": "backend/main.py",
+  "scripts": {
+    "build:css": "sass frontend/scss/main.scss frontend/css/main.css",
+    "watch:css": "sass --watch frontend/scss/main.scss frontend/css/main.css",
+    "dev": "uvicorn backend.main:app --reload --port 8000"
+  },
+  "devDependencies": {
+    "sass": "^1.83.0"
+  }
+}
