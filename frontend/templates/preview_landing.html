@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{{ cliente.hero_subheadline }}">
+  <title>{{ cliente.nombre_negocio }} - Landing Page Oficial</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Main Styles -->
+  <link rel="stylesheet" href="/static/css/main.css?v=2.0.0">
+</head>
+<body class="theme-{{ cliente.categoria_visual }}">
+
+  <!-- Top Announcement Bar -->
+  <div class="top-bar">
+    <div class="container top-bar-content">
+      <span>⚡ Demo Live Generada por <strong>Nicho Landing Factory</strong></span>
+      <a href="/admin/dashboard" class="badge badge-tecnologia">Volver al CRM Dashboard</a>
+    </div>
+  </div>
+
+  <!-- Header Comercial del Cliente -->
+  <header class="landing-header">
+    <div class="container landing-header-inner">
+      <div class="brand">
+        <span class="brand-niche-badge badge badge-{{ cliente.categoria_visual }}">{{ cliente.categoria_visual }}</span>
+        <h1 class="brand-title">{{ cliente.nombre_negocio }}</h1>
+      </div>
+      <nav class="landing-nav">
+        <a href="#servicios">Servicios</a>
+        <a href="#beneficios">Beneficios</a>
+        <a href="#testimonios">Testimonios</a>
+        <a href="#contacto">Contacto</a>
+      </nav>
+      <a href="https://wa.me/{{ cliente.telefono_whatsapp | replace('+', '') | replace(' ', '') }}" target="_blank" class="btn btn-cta-header">
+        <span>💬 Contactar por WhatsApp</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container hero-container">
+      <div class="hero-badge fade-in">
+        <span>⭐ {{ cliente.tagline }}</span>
+      </div>
+      <h1 class="hero-headline fade-in">{{ cliente.hero_headline }}</h1>
+      <p class="hero-subheadline fade-in">{{ cliente.hero_subheadline }}</p>
+      
+      <div class="hero-actions fade-in">
+        <a href="https://wa.me/{{ cliente.telefono_whatsapp | replace('+', '') | replace(' ', '') }}" target="_blank" class="btn btn-primary btn-lg">
+          💬 {{ cliente.cta_texto }}
+        </a>
+        <a href="#servicios" class="btn btn-secondary btn-lg">Conocer Servicios</a>
+      </div>
+
+      <div class="hero-trust-bar fade-in">
+        <div class="trust-item">
+          <strong>Garantía de Calidad</strong>
+          <span>Atención 100% Personalizada</span>
+        </div>
+        <div class="trust-divider"></div>
+        <div class="trust-item">
+          <strong>Horario de Atención</strong>
+          <span>{{ cliente.horario }}</span>
+        </div>
+        <div class="trust-divider"></div>
+        <div class="trust-item">
+          <strong>Ubicación</strong>
+          <span>{{ cliente.direccion }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Beneficios / Por Qué Elegirnos -->
+  <section id="beneficios" class="section-padding section-alt">
+    <div class="container">
+      <div class="section-header">
+        <h2>¿Por qué elegir {{ cliente.nombre_negocio }}?</h2>
+        <p>Nuestra propuesta de valor diseñada para brindarte la mejor experiencia</p>
+      </div>
+
+      <div class="grid grid-3">
+        {% for ben in cliente.beneficios %}
+        <div class="card beneficio-card fade-in">
+          <div class="icon-wrapper">{{ ben.icono }}</div>
+          <h3>{{ ben.titulo }}</h3>
+          <p>{{ ben.descripcion }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <!-- Servicios / Productos -->
+  <section id="servicios" class="section-padding">
+    <div class="container">
+      <div class="section-header">
+        <h2>Servicios & Especialidades</h2>
+        <p>Soluciones hechas a la medida de tus requerimientos en {{ cliente.rubro }}</p>
+      </div>
+
+      <div class="grid grid-3">
+        {% for serv in cliente.servicios %}
+        <div class="card servicio-card fade-in">
+          <div class="icon-wrapper-large">{{ serv.icono }}</div>
+          <h3>{{ serv.titulo }}</h3>
+          <p>{{ serv.descripcion }}</p>
+          <a href="https://wa.me/{{ cliente.telefono_whatsapp | replace('+', '') | replace(' ', '') }}?text=Hola,%20quisiera%20consultar%20por%20{{ serv.titulo }}" target="_blank" class="servicio-link">
+            Consultar por este servicio &rarr;
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonios -->
+  <section id="testimonios" class="section-padding section-alt">
+    <div class="container">
+      <div class="section-header">
+        <h2>Lo que opinan nuestros clientes</h2>
+        <p>Historias reales de satisfacción y confianza</p>
+      </div>
+
+      <div class="testimonial-single card fade-in">
+        <div class="testimonial-stars">
+          {% for i in range(cliente.testimonio.estrellas) %}★{% endfor %}
+        </div>
+        <blockquote class="testimonial-quote">
+          "{{ cliente.testimonio.comentario }}"
+        </blockquote>
+        <div class="testimonial-author">
+          <strong>{{ cliente.testimonio.autor }}</strong>
+          <span>{{ cliente.testimonio.cargo }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Final / Contacto -->
+  <section id="contacto" class="cta-banner-section">
+    <div class="container">
+      <div class="card cta-banner-card fade-in">
+        <h2>¿Listo para empezar con {{ cliente.nombre_negocio }}?</h2>
+        <p>Comunícate hoy mismo y recibe asesoramiento inmediato por WhatsApp o email.</p>
+        
+        <div class="cta-contact-grid">
+          <div class="contact-pill">
+            <span class="pill-icon">📱</span>
+            <div class="pill-info">
+              <small>WhatsApp Directo</small>
+              <strong>{{ cliente.telefono_whatsapp }}</strong>
+            </div>
+          </div>
+          <div class="contact-pill">
+            <span class="pill-icon">✉️</span>
+            <div class="pill-info">
+              <small>Correo Electrónico</small>
+              <strong>{{ cliente.email }}</strong>
+            </div>
+          </div>
+          <div class="contact-pill">
+            <span class="pill-icon">📍</span>
+            <div class="pill-info">
+              <small>Ubicación</small>
+              <strong>{{ cliente.direccion }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 2rem; text-align: center;">
+          <a href="https://wa.me/{{ cliente.telefono_whatsapp | replace('+', '') | replace(' ', '') }}" target="_blank" class="btn btn-primary btn-xl">
+            💬 {{ cliente.cta_texto }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <div class="container footer-content">
+      <p>&copy; 2026 <strong>{{ cliente.nombre_negocio }}</strong>. Todos los derechos reservados. | Rubro: {{ cliente.rubro }}</p>
+      <p style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;">
+        Landing Page generada automáticamente por ⚡ <strong>Nicho Landing Factory & CRM</strong>
+      </p>
+    </div>
+  </footer>
+
+</body>
+</html>

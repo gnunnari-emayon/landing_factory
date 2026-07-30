@@ -5,7 +5,7 @@ import os
 # Incluir la raíz del proyecto en PYTHONPATH
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from backend.services.generator import inferir_categoria_por_rubro, generar_landing_page
+from backend.services.generator import inferir_categoria_por_rubro, generar_landing_page, CLIENTES_DB
 
 class TestGeneratorEngine(unittest.TestCase):
 
@@ -35,10 +35,22 @@ class TestGeneratorEngine(unittest.TestCase):
         self.assertEqual(inferir_categoria_por_rubro("Empresa Consultora Global XYZ"), "corporativo")
         self.assertEqual(inferir_categoria_por_rubro(""), "corporativo")
 
-    def test_generar_landing_page_fallback(self):
-        res = generar_landing_page("Café Central", "Rubro Gastronómico")
-        self.assertEqual(res.categoria_visual, "gastronomia")
+    def test_generar_landing_page_enriquecida(self):
+        res = generar_landing_page(
+            nombre_negocio="Café Central",
+            rubro="Rubro Gastronómico",
+            telefono_whatsapp="+5491199998888",
+            email="info@cafecentral.com"
+        )
+        cliente = res.cliente
+        self.assertEqual(cliente.categoria_visual, "gastronomia")
         self.assertEqual(res.status, "success")
+        self.assertEqual(cliente.nombre_negocio, "Café Central")
+        self.assertEqual(cliente.telefono_whatsapp, "+5491199998888")
+        self.assertEqual(cliente.email, "info@cafecentral.com")
+        self.assertGreater(len(cliente.servicios), 0)
+        self.assertGreater(len(cliente.beneficios), 0)
+        self.assertIn(cliente.id, CLIENTES_DB)
 
 if __name__ == "__main__":
     unittest.main()

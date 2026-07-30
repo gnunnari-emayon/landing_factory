@@ -4,49 +4,137 @@
 
 {% block content %}
 <section style="padding: 2rem 0;">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+
+  <!-- Encabezado Dashboard -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
     <div>
-      <h1 style="font-size: 1.75rem;">Dashboard CRM</h1>
-      <p style="color: var(--color-text-muted);">Usuario activo: <strong style="color: var(--color-accent);">DEV</strong></p>
+      <h1 style="font-size: 1.85rem; font-weight: 800;">Dashboard CRM Comercial</h1>
+      <p style="color: var(--color-text-muted);">
+        Usuario activo: <strong style="color: var(--color-accent);">{{ active_user }}</strong> | 
+        Landings Activas: <strong id="total-landings-count" style="color: var(--color-secondary);">{{ clientes | length }}</strong>
+      </p>
     </div>
-    <span class="badge badge-tecnologia">Servicio Activo</span>
+    <div style="display: flex; gap: 0.5rem;">
+      <span class="badge badge-tecnologia">Engine v2.0 Activo</span>
+      <span class="badge badge-gastronomia">Fallback Inteligente OK</span>
+    </div>
   </div>
 
+  <!-- Botones de Carga Rápida (Demo Presets) -->
+  <div class="card" style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(6, 182, 212, 0.08)); border-color: rgba(99, 102, 241, 0.3);">
+    <h3 style="font-size: 1.1rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+      <span>⚡ Demos Rápidas de Un Clic (Presets)</span>
+    </h3>
+    <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 1rem;">
+      Selecciona un rubro preconfigurado para probar la generación instantánea de landing page y CRM:
+    </p>
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <button type="button" class="btn btn-preset" data-negocio="Café & Bistro La Terminal" data-rubro="Cafetería y Gastronomía" data-tel="+5491155551000" data-email="hola@laterminalbistro.com">
+        🍔 Gastronomía
+      </button>
+      <button type="button" class="btn btn-preset" data-negocio="Motorsport Taller Integral" data-rubro="Taller Mecánico y Lubricentro" data-tel="+5491155552000" data-email="turnos@motorsport.com">
+        🚗 Automotriz
+      </button>
+      <button type="button" class="btn btn-preset" data-negocio="Centro de Estética & Spa Vitalia" data-rubro="Clínica Estética y Salud" data-tel="+5491155553000" data-email="contacto@vitalia.com">
+        ✨ Salud & Belleza
+      </button>
+      <button type="button" class="btn btn-preset" data-negocio="Impulso Cargas & Logística" data-rubro="Fletes y Mudanzas Express" data-tel="+5491155554000" data-email="fletes@impulso.com">
+        📦 Logística
+      </button>
+      <button type="button" class="btn btn-preset" data-negocio="CloudCode Tech Solutions" data-rubro="Desarrollo de Software y Apps" data-tel="+5491155555000" data-email="info@cloudcode.io">
+        💻 Tecnología
+      </button>
+    </div>
+  </div>
+
+  <!-- Formulario de Generación -->
   <div class="card" style="margin-bottom: 2rem;">
-    <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">Generar Nueva Landing por Rubro</h2>
-    <form id="generator-form" style="display: grid; gap: 1rem; grid-template-columns: 1fr 1fr auto;">
-      <input type="text" id="nombre_negocio" placeholder="Nombre comercial (ej. Café Central)" required style="padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-bg-dark); color: #fff;">
-      <input type="text" id="rubro" placeholder="Rubro (ej. Cafetería / Gastronomía)" required style="padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-bg-dark); color: #fff;">
-      <button type="submit" class="btn btn-primary">Generar</button>
+    <h2 style="font-size: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+      <span>Generar Nueva Landing Page por Rubro</span>
+      <span id="preview-badge" class="badge badge-corporativo" style="display: none;">Procesando...</span>
+    </h2>
+
+    <form id="generator-form" style="display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+      <div>
+        <label for="nombre_negocio" style="display: block; font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 0.25rem;">Nombre Comercial *</label>
+        <input type="text" id="nombre_negocio" placeholder="ej. Pizzería Don Corleone" required class="form-input">
+      </div>
+
+      <div>
+        <label for="rubro" style="display: block; font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 0.25rem;">Rubro o Actividad *</label>
+        <input type="text" id="rubro" placeholder="ej. Gastronomía / Pizzería" required class="form-input">
+      </div>
+
+      <div>
+        <label for="telefono_whatsapp" style="display: block; font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 0.25rem;">WhatsApp Comercial</label>
+        <input type="text" id="telefono_whatsapp" placeholder="ej. +5491155559999" class="form-input">
+      </div>
+
+      <div>
+        <label for="email" style="display: block; font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 0.25rem;">Email de Contacto</label>
+        <input type="email" id="email" placeholder="ej. contacto@negocio.com" class="form-input">
+      </div>
+
+      <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+        <button type="submit" class="btn btn-primary" style="min-width: 200px;">
+          🚀 Generar Landing Page
+        </button>
+      </div>
     </form>
   </div>
 
+  <!-- Tabla CRM de Clientes Generados -->
   <div class="card">
-    <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">Historial de Landings Generadas</h2>
-    <table style="width: 100%; border-collapse: collapse; text-align: left;">
-      <thead>
-        <tr style="border-bottom: 1px solid var(--color-border); color: var(--color-text-muted);">
-          <th style="padding: 0.75rem;">Negocio</th>
-          <th style="padding: 0.75rem;">Rubro</th>
-          <th style="padding: 0.75rem;">Categoría Visual</th>
-          <th style="padding: 0.75rem;">Estado</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr style="border-bottom: 1px solid var(--color-border);">
-          <td style="padding: 0.75rem;">Taller Mecánico San José</td>
-          <td style="padding: 0.75rem;">Reparación Automotriz</td>
-          <td style="padding: 0.75rem;"><span class="badge badge-automotriz">automotriz</span></td>
-          <td style="padding: 0.75rem; color: var(--color-accent);">Activa</td>
-        </tr>
-        <tr style="border-bottom: 1px solid var(--color-border);">
-          <td style="padding: 0.75rem;">Café de la Plaza</td>
-          <td style="padding: 0.75rem;">Gastronomía</td>
-          <td style="padding: 0.75rem;"><span class="badge badge-gastronomia">gastronomia</span></td>
-          <td style="padding: 0.75rem; color: var(--color-accent);">Activa</td>
-        </tr>
-      </tbody>
-    </table>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+      <h2 style="font-size: 1.25rem;">Clientes CRM & Landings Generadas</h2>
+      <input type="text" id="crm-search" placeholder="🔍 Buscar cliente o rubro..." style="padding: 0.5rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-bg-dark); color: #fff; font-size: 0.875rem;">
+    </div>
+
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--color-border); color: var(--color-text-muted); font-size: 0.875rem;">
+            <th style="padding: 0.875rem;">Negocio</th>
+            <th style="padding: 0.875rem;">Rubro</th>
+            <th style="padding: 0.875rem;">Nicho Visual</th>
+            <th style="padding: 0.875rem;">Contacto</th>
+            <th style="padding: 0.875rem;">Estado Lead</th>
+            <th style="padding: 0.875rem; text-align: right;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="crm-table-body">
+          {% for cliente in clientes %}
+          <tr style="border-bottom: 1px solid var(--color-border);" class="crm-row">
+            <td style="padding: 0.875rem;">
+              <strong style="color: #fff; font-size: 0.95rem;">{{ cliente.nombre_negocio }}</strong>
+              <div style="font-size: 0.75rem; color: var(--color-text-muted);">ID: {{ cliente.id }}</div>
+            </td>
+            <td style="padding: 0.875rem; font-size: 0.9rem; color: var(--color-text-muted);">
+              {{ cliente.rubro }}
+            </td>
+            <td style="padding: 0.875rem;">
+              <span class="badge badge-{{ cliente.categoria_visual }}">{{ cliente.categoria_visual }}</span>
+            </td>
+            <td style="padding: 0.875rem; font-size: 0.85rem;">
+              <div>💬 {{ cliente.telefono_whatsapp }}</div>
+              <div style="color: var(--color-text-muted);">✉️ {{ cliente.email }}</div>
+            </td>
+            <td style="padding: 0.875rem;">
+              <span class="badge badge-corporativo" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                {{ cliente.estado_lead }}
+              </span>
+            </td>
+            <td style="padding: 0.875rem; text-align: right;">
+              <a href="/preview/{{ cliente.id }}" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 0.4rem 0.85rem;">
+                🌐 Ver Landing Demo &rarr;
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
+
 </section>
 {% endblock %}
