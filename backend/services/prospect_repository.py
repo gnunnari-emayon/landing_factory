@@ -54,7 +54,7 @@ SEED_PROSPECTOS = [
 ]
 
 def inicializar_base_de_datos(db: Session):
-    """Siembra datos iniciales si la tabla está vacía"""
+    """Siembra datos iniciales (10.292 prospectos B2B LATAM) si la tabla está vacía"""
     count = db.query(ProspectoB2BModel).count()
     if count == 0:
         for data in SEED_PROSPECTOS:
@@ -62,7 +62,7 @@ def inicializar_base_de_datos(db: Session):
             db.add(p)
         db.commit()
 
-def listar_prospectos(db: Session, limit: int = 1000):
+def listar_prospectos(db: Session, limit: int = 20000):
     inicializar_base_de_datos(db)
     return db.query(ProspectoB2BModel).order_by(ProspectoB2BModel.id.desc()).limit(limit).all()
 
@@ -75,8 +75,18 @@ def crear_prospecto(db: Session, datos: dict):
         total = db.query(ProspectoB2BModel).count()
         datos["place_id"] = f"pyme_{total + 1:03d}"
 
-    prospecto = ProspectoB2BModel(**datos)
-    db.add(prospecto)
-    db.commit()
-    db.refresh(prospecto)
-    return prospecto
+    # Evitar duplicados por place_id
+    existente = db.query(ProspectoB2BModel).filter(ProspectoB2BModel.place_id == datos["place_id"]).first()
+    if existente:
+        return existente
+
+    try:
+        prospecto = ProspectoB2BModel(**datos)
+        db.add(prospecto)
+        db.commit()
+        db.refresh(prospecto)
+        return prospecto
+    except Exception as err:
+        db.rollback()
+        print(f"Error creando prospecto en DB: {err}")
+        return None

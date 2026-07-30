@@ -1,0 +1,343 @@
+{% extends 'base.html' %}
+
+{% block title %}Prospector Google Maps — Agencia B2B{% endblock %}
+
+{% block content %}
+<div class="dashboard-section">
+  <!-- Tarjetas de Estadísticas -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+    <div class="card" style="display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <p class="text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">Prospectos B2B</p>
+        <p style="font-size: 1.75rem; font-weight: 800; color: #fff; margin-top: 0.25rem;">{{ total }}</p>
+      </div>
+      <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99, 102, 241, 0.1); color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+        <i class="fa-solid fa-users"></i>
+      </div>
+    </div>
+    <div class="card" style="display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <p class="text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">Sin Sitio Web</p>
+        <p style="font-size: 1.75rem; font-weight: 800; color: #f59e0b; margin-top: 0.25rem;">{{ sin_web }}</p>
+      </div>
+      <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(245, 158, 11, 0.1); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+        <i class="fa-solid fa-globe"></i>
+      </div>
+    </div>
+    <div class="card" style="display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <p class="text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">Enriquecidos</p>
+        <p style="font-size: 1.75rem; font-weight: 800; color: #10b981; margin-top: 0.25rem;">{{ enriquecidos }}</p>
+      </div>
+      <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16, 185, 129, 0.1); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+    </div>
+    <div class="card" style="display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <p class="text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">Contactados</p>
+        <p style="font-size: 1.75rem; font-weight: 800; color: #c084fc; margin-top: 0.25rem;">{{ contactados }}</p>
+      </div>
+      <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(192, 132, 252, 0.1); color: #c084fc; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+        <i class="fa-solid fa-paper-plane"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario de Prospección Doble Motor (Google Places + Agent Reach) -->
+  <div class="card dashboard-card">
+    <!-- Selector de Motor Prominente -->
+    <div style="display: flex; gap: 0.75rem; border-bottom: 1px solid var(--color-border); margin-bottom: 1.5rem; padding-bottom: 1rem; flex-wrap: wrap;">
+      <button 
+        id="btn-motor-places" 
+        type="button"
+        onclick="cambiarMotorProspeccion('places')" 
+        class="btn" 
+        style="background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover)); color: #ffffff; padding: 0.75rem 1.25rem; font-size: 0.875rem; border-radius: var(--radius-md); font-weight: 700; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fa-solid fa-location-dot" style="color: #38bdf8;"></i> 1. Google Places API (Maps)
+      </button>
+
+      <button 
+        id="btn-motor-reach" 
+        type="button"
+        onclick="cambiarMotorProspeccion('agent-reach')" 
+        class="btn" 
+        style="background: rgba(255,255,255,0.05); color: var(--color-text-muted); padding: 0.75rem 1.25rem; font-size: 0.875rem; border-radius: var(--radius-md); font-weight: 700; border: 1px solid var(--color-border); cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fa-solid fa-globe" style="color: #ec4899;"></i> 2. Agent Reach (Social & Web Search)
+      </button>
+    </div>
+
+    <!-- Formulario Google Places -->
+    <div id="form-motor-places">
+      <h2 class="card-title" style="font-size: 1rem;"><i class="fa-solid fa-magnifying-glass-location" style="color: #06b6d4;"></i> Búsqueda por Geolocalización en Google Maps</h2>
+      <form action="/api/v1/agencia/b2b/prospectar" method="POST" class="generator-grid">
+        <input type="text" name="tipo_busqueda" placeholder="Ej: fletes, cafeteria, odontologo" required class="form-input">
+        <input type="text" name="ciudad_nombre" placeholder="Ej: Salta, AR o Cordoba, AR" required class="form-input">
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-bolt"></i> Iniciar Búsqueda Places</button>
+      </form>
+    </div>
+
+    <!-- Formulario Agent Reach Multicanal -->
+    <div id="form-motor-reach" style="display: none;">
+      <h2 class="card-title" style="font-size: 1rem;"><i class="fa-solid fa-network-wired" style="color: #ec4899;"></i> Escaneo Profundo Multicanal (Facebook, Instagram, LinkedIn, Exa)</h2>
+      <form action="/api/v1/agencia/b2b/prospectar-agent-reach" method="POST" class="generator-grid">
+        <input type="text" name="rubro" placeholder="Ej: taller mecanico, estetica, contenedores" required class="form-input">
+        <input type="text" name="ubicacion" placeholder="Ej: Rosario, AR o Mendoza, AR" required class="form-input">
+        <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #ec4899, #8b5cf6);"><i class="fa-solid fa-radar"></i> Escanear con Agent Reach</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tabla de Prospectos -->
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; gap: 1rem; flex-wrap: wrap;">
+      <div>
+        <h2 class="card-title" style="margin: 0;">Base de Prospectos Capturados</h2>
+        <p class="text-muted" style="font-size: 0.75rem;">Mostrando {{ total }} empresas en base de datos</p>
+      </div>
+
+      <!-- Filtro en tiempo real por rubro o nombre -->
+      <div style="position: relative; width: 100%; max-width: 320px;">
+        <input 
+          type="text" 
+          id="table-filter-input" 
+          placeholder="Filtrar por rubro, nombre o ciudad..." 
+          class="form-input"
+          style="width: 100%; padding-left: 2.25rem;"
+          onkeyup="filtrarTablaProspectos()"
+        >
+        <i class="fa-solid fa-search" style="position: absolute; left: 0.875rem; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); font-size: 0.75rem;"></i>
+      </div>
+    </div>
+
+    <table class="data-table" id="prospects-table">
+      <thead>
+        <tr>
+          <th>Empresa</th>
+          <th>Rubro / Categoría</th>
+          <th>Ciudad / Ubicación</th>
+          <th>Contacto</th>
+          <th>Fecha Búsqueda</th>
+          <th>Presencia Web</th>
+          <th style="text-align: right;">Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in items %}
+        <tr class="prospect-row">
+          <td style="font-weight: 600; color: #fff;" class="col-nombre">{{ p.nombre }}</td>
+          <td class="col-rubro">
+            <span class="badge badge-tecnologia">{{ p.tipo_busqueda or 'Servicios' }}</span>
+          </td>
+          <td class="text-muted col-ciudad">{{ p.ciudad_busqueda or 'Rosario, AR' }}</td>
+          <td class="text-accent col-contacto">{{ p.whatsapp or p.telefono or 'Sin teléfono' }}</td>
+          <td class="text-muted" style="font-family: monospace;">{{ p.created_at[:10] if p.created_at else 'Reciente' }}</td>
+          <td>
+            {% if p.sitio_web %}
+              <span class="badge badge-tecnologia">Con Sitio Web</span>
+            {% else %}
+              <span class="badge badge-gastronomia">Sin Sitio Web 🔥</span>
+            {% endif %}
+          </td>
+          <td style="text-align: right;">
+            <button 
+              type="button"
+              onclick="abrirModalDemo('{{ p.place_id }}', '{{ p.nombre }}')" 
+              class="btn btn-primary" 
+              style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> Generar Demo & Oferta
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL CONFIGURACIÓN COMERCIAL (DOMINIO + PRECIO + PROMPT) -->
+<div id="modal-config-demo" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 1rem;">
+  <div class="card" style="max-width: 580px; width: 100%; border: 1px solid var(--color-primary); box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.25);">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 0.75rem; border-bottom: 1px solid var(--color-border); margin-bottom: 1rem;">
+      <div>
+        <h3 class="card-title" style="margin: 0; font-size: 1.125rem;"><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--color-primary);"></i> Configurar Oferta Comercial & Landing</h3>
+        <p id="modal-prospect-nombre" class="text-muted" style="font-size: 0.75rem; margin-top: 0.25rem;">Cargando prospecto...</p>
+      </div>
+      <button type="button" onclick="cerrarModalDemo()" style="background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 1.25rem;">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- 1. BUSCADOR DE DOMINIO -->
+    <div style="background: var(--color-bg-dark); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); margin-bottom: 1rem;">
+      <label style="font-size: 0.75rem; font-weight: 700; color: #fff; display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+        <span>🌐 Dominio Propuesto para el Cliente</span>
+        <span id="dns-loading-indicator" style="display: none; color: var(--color-primary);"><i class="fa-solid fa-spinner fa-spin"></i> Verificando...</span>
+      </label>
+      <input type="text" id="modal-dominio-input" placeholder="Ej: miempresa.com" class="form-input" style="width: 100%; font-family: monospace; color: #10b981;">
+      
+      <div id="modal-dominios-list" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;"></div>
+    </div>
+
+    <!-- 2. CONFIGURADOR DE PRECIOS Y GANANCIA DEV -->
+    <div style="background: rgba(99, 102, 241, 0.05); padding: 1rem; border-radius: var(--radius-md); border: 1px solid rgba(99, 102, 241, 0.2); margin-bottom: 1rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <label style="font-size: 0.75rem; font-weight: 700; color: #a5b4fc;">💵 Precio a Cobrar al Cliente ($ USD)</label>
+        <span id="label-precio-cliente" class="badge badge-tecnologia" style="font-size: 0.875rem; font-family: monospace;">$350 USD</span>
+      </div>
+      <input type="range" id="input-range-precio" min="200" max="1000" step="25" value="350" oninput="actualizarCalculoGanancia(this.value)" style="width: 100%; margin-bottom: 0.75rem;">
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; text-align: center;">
+        <div style="background: var(--color-bg-dark); padding: 0.5rem; border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+          <p class="text-muted" style="font-size: 0.65rem;">Precio Cliente</p>
+          <p id="calc-precio-cliente" style="font-weight: 700; color: #fff; font-size: 0.875rem;">$350 USD</p>
+        </div>
+        <div style="background: var(--color-bg-dark); padding: 0.5rem; border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+          <p class="text-muted" style="font-size: 0.65rem;">Infraestructura</p>
+          <p style="font-weight: 700; color: #f59e0b; font-size: 0.875rem;">-$200 USD</p>
+        </div>
+        <div style="background: rgba(16, 185, 129, 0.1); padding: 0.5rem; border-radius: var(--radius-md); border: 1px solid rgba(16, 185, 129, 0.3);">
+          <p style="font-size: 0.65rem; color: #10b981; font-weight: 700;">Tu Ganancia Dev</p>
+          <p id="calc-ganancia-dev" style="font-weight: 800; color: #10b981; font-size: 0.875rem;">+$150 USD</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. PROMPT PERSONALIZADO -->
+    <div style="margin-bottom: 1.25rem;">
+      <label class="text-muted" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">Directivas / Prompt Personalizado para IA (Opcional):</label>
+      <textarea id="modal-custom-prompt" placeholder="Ej: Enfocar en elegancia y alta gama, destacar atención 24hs, servicio a domicilio y garantía de satisfacción..." class="form-input" style="width: 100%; height: 70px; resize: none;"></textarea>
+    </div>
+
+    <button id="btn-ejecutar-generacion" type="button" onclick="ejecutarGeneracionDemo()" class="btn btn-primary" style="width: 100%; padding: 0.875rem; font-size: 0.875rem; font-weight: 800;">
+      <i class="fa-solid fa-wand-magic-sparkles"></i> Generar Landing & Checkout ($<span id="btn-price-val">350</span> USD)
+    </button>
+  </div>
+</div>
+
+<script>
+  let targetProspectPlaceId = null;
+
+  function abrirModalDemo(placeId, nombreProspecto) {
+    targetProspectPlaceId = placeId;
+    document.getElementById('modal-prospect-nombre').innerText = nombreProspecto;
+    document.getElementById('modal-dominio-input').value = '';
+    document.getElementById('modal-dominios-list').innerHTML = '';
+    document.getElementById('modal-config-demo').style.display = 'flex';
+
+    // Verificar disponibilidad de dominios sugeridos
+    const dnsIndicator = document.getElementById('dns-loading-indicator');
+    dnsIndicator.style.display = 'inline';
+
+    fetch('/api/v1/agencia/dominio/verificar?nombre=' + encodeURIComponent(nombreProspecto))
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('modal-dominio-input').value = data.sugerencia_principal || '';
+        const listDiv = document.getElementById('modal-dominios-list');
+        listDiv.innerHTML = '';
+
+        (data.dominios || []).forEach(d => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'badge ' + (d.disponible ? 'badge-tecnologia' : 'badge-corporativo');
+          btn.style.cursor = 'pointer';
+          btn.innerText = d.dominio + (d.disponible ? ' ✓ Disponible' : ' × Ocupado');
+          btn.onclick = () => { document.getElementById('modal-dominio-input').value = d.dominio; };
+          listDiv.appendChild(btn);
+        });
+      })
+      .finally(() => { dnsIndicator.style.display = 'none'; });
+  }
+
+  function cerrarModalDemo() {
+    document.getElementById('modal-config-demo').style.display = 'none';
+  }
+
+  function actualizarCalculoGanancia(val) {
+    const precio = parseInt(val);
+    const ganancia = Math.max(0, precio - 200);
+    document.getElementById('label-precio-cliente').innerText = '$' + precio + ' USD';
+    document.getElementById('calc-precio-cliente').innerText = '$' + precio + ' USD';
+    document.getElementById('calc-ganancia-dev').innerText = '+$' + ganancia + ' USD';
+    document.getElementById('btn-price-val').innerText = precio;
+  }
+
+  function ejecutarGeneracionDemo() {
+    if (!targetProspectPlaceId) return;
+
+    const precio = document.getElementById('input-range-precio').value;
+    const dominio = document.getElementById('modal-dominio-input').value;
+    const promptText = document.getElementById('modal-custom-prompt').value;
+    const btn = document.getElementById('btn-ejecutar-generacion');
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generando Landing Page & Checkout...';
+
+    fetch('/api/v1/agencia/prospectos_b2b/generar-demo/' + encodeURIComponent(targetProspectPlaceId), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        custom_prompt: promptText,
+        precio_usd: parseInt(precio),
+        dominio_elegido: dominio
+      })
+    })
+    .then(res => {
+      if (res.ok) {
+        alert('🚀 Demo y Oferta comercial generadas con éxito para ' + dominio + ' ($' + precio + ' USD).');
+        window.location.reload();
+      } else {
+        alert('Error generando la demo comercial.');
+      }
+    })
+    .catch(err => alert('Error invocando el generador: ' + err))
+    .finally(() => {
+      btn.disabled = false;
+      cerrarModalDemo();
+    });
+  }
+
+  function cambiarMotorProspeccion(motor) {
+    const formPlaces = document.getElementById('form-motor-places');
+    const formReach = document.getElementById('form-motor-reach');
+    const btnPlaces = document.getElementById('btn-motor-places');
+    const btnReach = document.getElementById('btn-motor-reach');
+
+    if (motor === 'places') {
+      formPlaces.style.display = 'block';
+      formReach.style.display = 'none';
+      btnPlaces.style.background = 'linear-gradient(135deg, var(--color-primary), var(--color-primary-hover))';
+      btnPlaces.style.color = '#ffffff';
+      btnPlaces.style.border = '1px solid rgba(255,255,255,0.1)';
+      
+      btnReach.style.background = 'rgba(255,255,255,0.05)';
+      btnReach.style.color = 'var(--color-text-muted)';
+      btnReach.style.border = '1px solid var(--color-border)';
+    } else {
+      formPlaces.style.display = 'none';
+      formReach.style.display = 'block';
+      btnReach.style.background = 'linear-gradient(135deg, #ec4899, #8b5cf6)';
+      btnReach.style.color = '#ffffff';
+      btnReach.style.border = '1px solid rgba(255,255,255,0.1)';
+      
+      btnPlaces.style.background = 'rgba(255,255,255,0.05)';
+      btnPlaces.style.color = 'var(--color-text-muted)';
+      btnPlaces.style.border = '1px solid var(--color-border)';
+    }
+  }
+
+  function filtrarTablaProspectos() {
+    const filter = document.getElementById('table-filter-input').value.toLowerCase();
+    const rows = document.querySelectorAll('#prospects-table .prospect-row');
+
+    rows.forEach(row => {
+      const text = row.innerText.toLowerCase();
+      if (text.includes(filter)) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+</script>
+{% endblock %}

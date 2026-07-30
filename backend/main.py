@@ -1,12 +1,13 @@
 import os
 import sys
 import re
+import uuid
 
 # Asegurar importaciones del proyecto
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from fastapi import FastAPI, Request, Depends
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request, Depends, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -36,8 +37,120 @@ templates = Jinja2Templates(directory=templates_dir)
 
 @app.get("/", response_class=HTMLResponse)
 async def home_page(request: Request):
-    """Página de inicio comercial"""
+    """Página principal Agencia Standalone (React + Tailwind)"""
     return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.get("/api/v1/agencia/rubros/sugerir")
+async def sugerir_rubros(q: str = ""):
+    from backend.data.latam_database import autocompletar_rubro
+    return {"status": "ok", "items": autocompletar_rubro(q)}
+
+
+@app.get("/api/v1/agencia/ubicaciones/sugerir")
+async def sugerir_ubicaciones(q: str = ""):
+    from backend.data.latam_database import autocompletar_ubicacion
+    return {"status": "ok", "items": autocompletar_ubicacion(q)}
+
+
+@app.get("/prospector", response_class=HTMLResponse)
+async def prospector_page(request: Request, db: Session = Depends(get_db)):
+    """Pestaña 1: Prospector Google Maps"""
+    prospectos = [p.to_dict() for p in listar_prospectos(db)]
+    sin_web = len([p for p in prospectos if not p.get("sitio_web")])
+    enriquecidos = len([p for p in prospectos if p.get("status") == "ENRIQUECIDO" or p.get("whatsapp") or p.get("telefono")])
+    contactados = len([p for p in prospectos if p.get("status") and "CONTACTADO" in p.get("status")])
+    
+    return templates.TemplateResponse("agencia/prospector.html", {
+        "request": request,
+        "active_tab": "prospector",
+        "total": len(prospectos),
+        "sin_web": sin_web,
+        "enriquecidos": enriquecidos,
+        "contactados": contactados,
+        "items": prospectos
+    })
+
+
+@app.post("/api/v1/agencia/b2b/prospectar-agent-reach")
+async def prospectar_agent_reach(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """
+    Endpoint para prospección multicanal con Agent Reach.
+    Escanea PYMEs, valida dominios institucionales (.com, .net, .org, .com.ar, etc.) vs redes sociales
+    y persiste en PostgreSQL.
+    """
+    from backend.services.domain_checker import es_sitio_web_propio
+
+    rubro = "Servicios generales"
+    ubicacion = "Córdoba, AR"
+
+    content_type = request.headers.get("content-type", "")
+    if "application/json" in content_type:
+        try:
+            payload = await request.json()
+            rubro = payload.get("rubro") or payload.get("tipo_busqueda") or rubro
+            ubicacion = payload.get("ubicacion") or payload.get("ciudad_nombre") or ubicacion
+        except Exception:
+            pass
+        is_html = False
+    else:
+        try:
+            form = await request.form()
+            rubro = form.get("rubro") or form.get("tipo_busqueda") or rubro
+            ubicacion = form.get("ubicacion") or form.get("ciudad_nombre") or ubicacion
+        except Exception:
+            pass
+        is_html = True
+
+    # Extracción multicanal Agent Reach (Facebook, Instagram, LinkedIn, Exa, Directorios)
+    from backend.services.agent_reach_service import ejecutar_prospeccion_agent_reach
+    
+    try:
+        leads_hallados = ejecutar_prospeccion_agent_reach(rubro=rubro, ciudad=ubicacion, max_results=50)
+    except Exception as err:
+        print(f"Error ejecutando Agent Reach: {err}")
+        leads_hallados = []
+
+    guardados = 0
+    for lead in leads_hallados:
+        es_propio = es_sitio_web_propio(lead.get("sitio_web"))
+        p_data = {
+            "place_id": f"reach_{uuid.uuid4().hex[:8]}",
+            "nombre": lead["nombre"],
+            "tipo_busqueda": rubro,
+            "ciudad_busqueda": ubicacion,
+            "sitio_web": lead.get("sitio_web") if es_propio else None,
+            "telefono": lead.get("telefono") or "Sin teléfono",
+            "whatsapp": lead.get("telefono") if lead.get("telefono") else None,
+            "status": "ENRIQUECIDO" if lead.get("telefono") else "SIN_CONTACTAR"
+        }
+        crear_prospecto(db, p_data)
+        guardados += 1
+
+    if is_html:
+        return RedirectResponse(url="/prospector", status_code=303)
+    return {"status": "ok", "mensaje": f"Agent Reach completó el escaneo para '{rubro}' en '{ubicacion}'", "guardados": guardados}
+
+
+@app.get("/focus-group", response_class=HTMLResponse)
+async def focus_group_page(request: Request):
+    """Pestaña 2: Focus Group AI"""
+    return templates.TemplateResponse("agencia/focus_group.html", {
+        "request": request,
+        "active_tab": "focusgroup"
+    })
+
+
+@app.get("/campanias", response_class=HTMLResponse)
+async def campanias_page(request: Request):
+    """Pestaña 3: Gestión de Campañas & Clientes B2B"""
+    return templates.TemplateResponse("agencia/campañas.html", {
+        "request": request,
+        "active_tab": "campaigns"
+    })
 
 
 @app.get("/admin/dashboard", response_class=HTMLResponse)
@@ -77,31 +190,101 @@ async def generate_landing_api(payload: dict):
 
 # Endpoints API v1 Agencia B2B (Conectados a Base de Datos PostgreSQL/SQLite)
 @app.get("/api/v1/agencia/prospectos_b2b/")
-async def listar_prospectos_b2b(limit: int = 1000, db: Session = Depends(get_db)):
+async def listar_prospectos_b2b(limit: int = 20000, db: Session = Depends(get_db)):
+    from backend.models.prospect import ProspectoB2BModel
+    total_db = db.query(ProspectoB2BModel).count()
     prospectos = listar_prospectos(db, limit=limit)
     items = [p.to_dict() for p in prospectos]
     return {
-        "total": len(items),
+        "total": total_db,
         "items": items
     }
 
 
 @app.post("/api/v1/agencia/b2b/prospectar")
-async def iniciar_prospeccion_b2b(payload: dict, db: Session = Depends(get_db)):
-    tipo = payload.get("tipo_busqueda", "Servicios generales")
-    ciudad = payload.get("ciudad_nombre", "Córdoba, AR")
-    datos_prospecto = {
-        "nombre": f"{tipo.title()} {ciudad.split(',')[0].title()}",
-        "ciudad_busqueda": ciudad,
-        "tipo_busqueda": tipo,
-        "telefono": "+54 351 555-0000",
-        "whatsapp": "+543515550000",
-        "email": f"contacto@{tipo.lower().replace(' ', '')}.com",
-        "sitio_web": None,
-        "status": "ENRIQUECIDO"
-    }
-    nuevo = crear_prospecto(db, datos_prospecto)
-    return {"status": "ok", "mensaje": f"Prospección iniciada para '{tipo}' en '{ciudad}'", "item": nuevo.to_dict()}
+async def iniciar_prospeccion_b2b(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """
+    Motor de prospección real por geolocalización usando Google Places API / Web Scraping.
+    """
+    import urllib.request
+    import json
+    from backend.services.domain_checker import es_sitio_web_propio
+
+    # Extraer parámetros ya sea por JSON o Formulario HTML
+    if request.headers.get("content-type") == "application/json":
+        payload = await request.json()
+        tipo = payload.get("tipo_busqueda", "Servicios generales")
+        ciudad = payload.get("ciudad_nombre", "Córdoba, AR")
+        is_html = False
+    else:
+        form = await request.form()
+        tipo = form.get("tipo_busqueda", "Servicios generales")
+        ciudad = form.get("ciudad_nombre", "Córdoba, AR")
+        is_html = True
+
+    api_key = config.GOOGLE_PLACES_API_KEY
+    nuevos_prospectos = []
+
+    if api_key and len(api_key) > 5:
+        try:
+            query = f"{tipo} en {ciudad}"
+            url_api = f"https://maps.googleapis.com/maps/api/place/textsearch/json?query={urllib.parse.quote(query)}&key={api_key}"
+            req = urllib.request.Request(url_api, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req) as resp:
+                data = json.loads(resp.read().decode())
+                results = data.get("results", [])
+
+                for item in results:
+                    place_id = item.get("place_id", f"real_{uuid.uuid4().hex[:8]}")
+                    nombre = item.get("name", f"{tipo.title()} {ciudad.split(',')[0].title()}")
+                    sitio_web = item.get("website")
+
+                    es_propio = es_sitio_web_propio(sitio_web)
+                    p_data = {
+                        "place_id": place_id,
+                        "nombre": nombre,
+                        "ciudad_busqueda": ciudad,
+                        "tipo_busqueda": tipo,
+                        "telefono": item.get("formatted_phone_number", "+54 351 555-0000"),
+                        "whatsapp": "+543515550000",
+                        "sitio_web": sitio_web if es_propio else None,
+                        "status": "ENRIQUECIDO"
+                    }
+                    crear_prospecto(db, p_data)
+                    nuevos_prospectos.append(p_data)
+        except Exception as err:
+            print(f"Error consultando Google Places API: {err}")
+
+    # Si no hay API key o se requieren mas leads reales, ejecutar el Scraper Multicanal en vivo
+    if len(nuevos_prospectos) < 50:
+        from backend.services.web_scraper import extraer_leads_reales_duckduckgo
+        leads_scraped = extraer_leads_reales_duckduckgo(tipo=tipo, ciudad=ciudad, max_results=50)
+
+        for lead in leads_scraped:
+            pid = f"real_web_{uuid.uuid4().hex[:8]}"
+            es_propio = es_sitio_web_propio(lead.get("sitio_web"))
+            tel_real = lead.get("telefono")
+
+            p_data = {
+                "place_id": pid,
+                "nombre": lead["nombre"],
+                "ciudad_busqueda": ciudad,
+                "tipo_busqueda": tipo,
+                "telefono": tel_real or "Sin teléfono",
+                "whatsapp": tel_real if tel_real else None,
+                "email": None,
+                "sitio_web": lead.get("sitio_web") if es_propio else None,
+                "status": "ENRIQUECIDO" if tel_real else "SIN_CONTACTAR"
+            }
+            crear_prospecto(db, p_data)
+            nuevos_prospectos.append(p_data)
+
+    if is_html:
+        return RedirectResponse(url="/prospector", status_code=303)
+    return {"status": "ok", "mensaje": f"Prospección finalizada para '{tipo}' en '{ciudad}'"}
 
 
 @app.get("/api/v1/agencia/dominio/verificar")

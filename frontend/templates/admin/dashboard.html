@@ -3,47 +3,47 @@
 {% block title %}Dashboard CRM - Nicho Landing Factory{% endblock %}
 
 {% block content %}
-<section style="padding: 2rem 0;">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+<section class="dashboard-section">
+  <div class="dashboard-header">
     <div>
-      <h1 style="font-size: 1.75rem;">Dashboard CRM</h1>
-      <p style="color: var(--color-text-muted);">Usuario activo: <strong style="color: var(--color-accent);">DEV</strong></p>
+      <h1 class="page-title">Dashboard CRM</h1>
+      <p class="text-muted">Usuario activo: <strong class="text-accent">{{ active_user }}</strong></p>
     </div>
     <span class="badge badge-tecnologia">Servicio Activo</span>
   </div>
 
-  <div class="card" style="margin-bottom: 2rem;">
-    <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">Generar Nueva Landing por Rubro</h2>
-    <form id="generator-form" style="display: grid; gap: 1rem; grid-template-columns: 1fr 1fr auto;">
-      <input type="text" id="nombre_negocio" placeholder="Nombre comercial (ej. Café Central)" required style="padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-bg-dark); color: #fff;">
-      <input type="text" id="rubro" placeholder="Rubro (ej. Cafetería / Gastronomía)" required style="padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-bg-dark); color: #fff;">
+  <div class="card dashboard-card">
+    <h2 class="card-title">Generar Nueva Landing por Rubro</h2>
+    <form id="generator-form" class="generator-grid">
+      <input type="text" id="nombre_negocio" placeholder="Nombre comercial (ej. Café Central)" required class="form-input">
+      <input type="text" id="rubro" placeholder="Rubro (ej. Cafetería / Gastronomía)" required class="form-input">
       <button type="submit" class="btn btn-primary">Generar</button>
     </form>
   </div>
 
   <div class="card">
-    <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">Historial de Landings Generadas</h2>
-    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+    <h2 class="card-title">Historial de Landings Generadas</h2>
+    <table class="data-table">
       <thead>
-        <tr style="border-bottom: 1px solid var(--color-border); color: var(--color-text-muted);">
-          <th style="padding: 0.75rem;">Negocio</th>
-          <th style="padding: 0.75rem;">Rubro</th>
-          <th style="padding: 0.75rem;">Categoría Visual</th>
-          <th style="padding: 0.75rem;">Estado</th>
+        <tr>
+          <th>Negocio</th>
+          <th>Rubro</th>
+          <th>Categoría Visual</th>
+          <th>Estado</th>
         </tr>
       </thead>
       <tbody>
-        <tr style="border-bottom: 1px solid var(--color-border);">
-          <td style="padding: 0.75rem;">Taller Mecánico San José</td>
-          <td style="padding: 0.75rem;">Reparación Automotriz</td>
-          <td style="padding: 0.75rem;"><span class="badge badge-automotriz">automotriz</span></td>
-          <td style="padding: 0.75rem; color: var(--color-accent);">Activa</td>
+        <tr>
+          <td>Taller Mecánico San José</td>
+          <td>Reparación Automotriz</td>
+          <td><span class="badge badge-automotriz">automotriz</span></td>
+          <td class="text-accent">Activa</td>
         </tr>
-        <tr style="border-bottom: 1px solid var(--color-border);">
-          <td style="padding: 0.75rem;">Café de la Plaza</td>
-          <td style="padding: 0.75rem;">Gastronomía</td>
-          <td style="padding: 0.75rem;"><span class="badge badge-gastronomia">gastronomia</span></td>
-          <td style="padding: 0.75rem; color: var(--color-accent);">Activa</td>
+        <tr>
+          <td>Café de la Plaza</td>
+          <td>Gastronomía</td>
+          <td><span class="badge badge-gastronomia">gastronomia</span></td>
+          <td class="text-accent">Activa</td>
         </tr>
       </tbody>
     </table>
