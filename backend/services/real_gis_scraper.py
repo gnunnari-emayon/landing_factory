@@ -81,6 +81,13 @@ def extraer_leads_reales_geolocalizados(tipo: str, ciudad: str, max_results: int
                     sitio = tags.get("website") or tags.get("contact:website")
                     telefono = tags.get("phone") or tags.get("contact:phone") or tags.get("phone:mobile")
 
+                    if not telefono:
+                        try:
+                            from backend.services.phone_enricher import enriquecer_telefono_google_maps
+                            telefono = enriquecer_telefono_google_maps(nombre, ciudad)
+                        except Exception:
+                            telefono = None
+
                     leads.append({
                         "nombre": nombre,
                         "tipo_busqueda": tipo,

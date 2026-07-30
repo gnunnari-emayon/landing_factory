@@ -28,20 +28,15 @@ def extraer_leads_reales_google(tipo: str, ciudad: str, max_results: int = 50):
         with urllib.request.urlopen(req, timeout=10) as resp:
             html = resp.read().decode("utf-8", errors="ignore")
 
-            # 1. Extraer resultados orgánicos de Google (H3 headers y links asociados)
-            # Regex para bloques de resultados de Google: <h3 class="..."><span>Título</span></h3>
-            matches = re.findall(r'<a [^>]*href="(/url\?q=|https://)[^"]*"[^>]*><h3[^>]*>(.*?)</h3>', html)
-            links_raw = re.findall(r'/url\?q=(https?://[^&]+)', html)
+            # Extraer todos los h3 (títulos de resultados) y buscar sus enlaces o nombres
+            h3_matches = re.findall(r'<h3[^>]*>(.*?)</h3>', html)
+            links_raw = re.findall(r'href="(https?://[^"]+)"', html)
 
-            for idx, match in enumerate(matches):
-                title_html = match[1]
-                nombre = re.sub(r'<[^>]+>', '', title_html).strip()
-
-                # Limpieza de nombre comercial
+            for idx, h3_text in enumerate(h3_matches):
+                nombre = re.sub(r'<[^>]+>', '', h3_text).strip()
                 nombre_clean = nombre.split("-")[0].split("|")[0].split(":")[0].strip()
 
-                # Filtro de agregadores o portales no PYME
-                palabras_ignorar = ["google", "wikipedia", "los 10 mejores", "top 10", "guía de", "directorio", "mejores en"]
+                palabras_ignorar = ["google", "wikipedia", "los 10 mejores", "top 10", "guía de", "directorio", "mejores en", "mapa"]
                 if any(p in nombre_clean.lower() for p in palabras_ignorar):
                     continue
 
@@ -53,7 +48,7 @@ def extraer_leads_reales_google(tipo: str, ciudad: str, max_results: int = 50):
                         "nombre": nombre_clean,
                         "tipo_busqueda": tipo,
                         "ciudad_busqueda": ciudad,
-                        "sitio_web": site_url if site_url and "google.com" not in site_url else None,
+                        "sitio_web": site_url if site_url and "google" not in site_url else None,
                         "telefono": None
                     })
 

@@ -39,6 +39,9 @@
 </head>
 <body>
 
+    <script>
+        window.__INITIAL_PROSPECTS__ = {{ initial_prospects | default([]) | tojson }};
+    </script>
     <div id="root"></div>
 
     <script type="text/babel">
@@ -47,33 +50,62 @@
         const App = () => {
             const [activeTab, setActiveTab] = useState('prospector');
             const [searchMotor, setSearchMotor] = useState('places');
-            const [prospects, setProspects] = useState([]);
+            const initialData = Array.isArray(window.__INITIAL_PROSPECTS__) ? window.__INITIAL_PROSPECTS__ : [];
+            const [prospects, setProspects] = useState(initialData);
             const [loading, setLoading] = useState(false);
             const [searchQuery, setSearchQuery] = useState('');
             const [searchCity, setSearchCity] = useState('');
 
-            // Autocompletado e Inferencia Inteligente LATAM
+            // Autocompletado e Inferencia Inteligente LATAM (con Debounce optimizado a 50ms y Caché en cliente)
             const [sugerenciasRubro, setSugerenciasRubro] = useState([]);
             const [sugerenciasUbicacion, setSugerenciasUbicacion] = useState([]);
+            const cacheRubrosRef = React.useRef({});
+            const cacheUbicacionesRef = React.useRef({});
+            const debounceRubroTimerRef = React.useRef(null);
+            const debounceUbicacionTimerRef = React.useRef(null);
 
-            const fetchRubrosSugerencias = async (q) => {
-                try {
-                    const res = await fetch(`/api/v1/agencia/rubros/sugerir?q=${encodeURIComponent(q || '')}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        setSugerenciasRubro(data.items || []);
-                    }
-                } catch (e) {}
+            const fetchRubrosSugerencias = (q) => {
+                if (debounceRubroTimerRef.current) clearTimeout(debounceRubroTimerRef.current);
+                const queryStr = (q || '').trim();
+                
+                if (cacheRubrosRef.current[queryStr]) {
+                    setSugerenciasRubro(cacheRubrosRef.current[queryStr]);
+                    return;
+                }
+
+                debounceRubroTimerRef.current = setTimeout(async () => {
+                    try {
+                        const res = await fetch(`/api/v1/agencia/rubros/sugerir?q=${encodeURIComponent(queryStr)}`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            const items = data.items || [];
+                            cacheRubrosRef.current[queryStr] = items;
+                            setSugerenciasRubro(items);
+                        }
+                    } catch (e) {}
+                }, 50);
             };
 
-            const fetchUbicacionesSugerencias = async (q) => {
-                try {
-                    const res = await fetch(`/api/v1/agencia/ubicaciones/sugerir?q=${encodeURIComponent(q || '')}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        setSugerenciasUbicacion(data.items || []);
-                    }
-                } catch (e) {}
+            const fetchUbicacionesSugerencias = (q) => {
+                if (debounceUbicacionTimerRef.current) clearTimeout(debounceUbicacionTimerRef.current);
+                const queryStr = (q || '').trim();
+
+                if (cacheUbicacionesRef.current[queryStr]) {
+                    setSugerenciasUbicacion(cacheUbicacionesRef.current[queryStr]);
+                    return;
+                }
+
+                debounceUbicacionTimerRef.current = setTimeout(async () => {
+                    try {
+                        const res = await fetch(`/api/v1/agencia/ubicaciones/sugerir?q=${encodeURIComponent(queryStr)}`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            const items = data.items || [];
+                            cacheUbicacionesRef.current[queryStr] = items;
+                            setSugerenciasUbicacion(items);
+                        }
+                    } catch (e) {}
+                }, 50);
             };
 
             // Buscador en la tabla
@@ -98,15 +130,15 @@
             ]);
             const [chatInput, setChatInput] = useState('');
 
-            // Stats
-            const [stats, setStats] = useState({
-                total: 0,
-                sin_web: 0,
-                enriquecidos: 0,
-                contactados: 0
+            // Stats iniciales desde los datos precargados
+            const [stats, setStats] = useState(() => {
+                const sin_web = initialData.filter(p => !p.sitio_web).length;
+                const enriquecidos = initialData.filter(p => p.status === 'ENRIQUECIDO' || p.whatsapp || p.email).length;
+                const contactados = initialData.filter(p => p.status && p.status.includes('CONTACTADO')).length;
+                return { total: initialData.length, sin_web, enriquecidos, contactados };
             });
 
-            // Cargar prospectos locales
+            // Cargar prospectos locales inmediatamente al instanciar
             useEffect(() => {
                 fetchProspects();
             }, []);

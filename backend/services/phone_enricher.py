@@ -1,7 +1,6 @@
 import urllib.request
 import urllib.parse
 import re
-from bs4 import BeautifulSoup
 
 def enriquecer_telefono_google_maps(nombre: str, ciudad: str):
     """
@@ -44,16 +43,14 @@ def enriquecer_telefono_google_maps(nombre: str, ciudad: str):
         with urllib.request.urlopen(req_g, timeout=5) as resp_g:
             html_g = resp_g.read().decode("utf-8", errors="ignore")
             
-            # Buscar en el texto visible del resultado
-            soup = BeautifulSoup(html_g, "html.parser")
-            text = soup.get_text()
-            
-            # Buscar formato explícito "0223 482-8871" o "Teléfono: ..."
-            match = re.search(r'(0\d{2,4}[\s-]?\d{3,4}[\s-]?\d{4})', text)
-            if match:
-                clean_num = re.sub(r'[^\d]', '', match.group(1))
-                if len(clean_num) in [10, 11] and not clean_num.startswith("0800"):
-                    return "+549" + clean_num[1:]
+            # Buscar formato explícito "0223 482-8871" o similar en HTML
+            matches_g = re.findall(r'(0?\d{3,4}[\s-]?\d{3,4}[\s-]?\d{4})', html_g)
+            for m in matches_g:
+                clean_num = re.sub(r'[^\d]', '', m)
+                if len(clean_num) in [10, 11] and not clean_num.startswith("0800") and not clean_num.startswith("0810"):
+                    if clean_num.startswith("0"):
+                        return "+54 9 " + clean_num[1:5] + " " + clean_num[5:]
+                    return "+54 " + clean_num
     except Exception as err:
         print(f"Error Google enriqueciendo teléfono para '{nombre}': {err}")
 

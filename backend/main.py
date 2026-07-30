@@ -36,9 +36,13 @@ templates = Jinja2Templates(directory=templates_dir)
 
 
 @app.get("/", response_class=HTMLResponse)
-async def home_page(request: Request):
-    """Página principal Agencia Standalone (React + Tailwind)"""
-    return templates.TemplateResponse("index.html", {"request": request})
+async def home_page(request: Request, db: Session = Depends(get_db)):
+    """Página principal Agencia Standalone (React + Tailwind) con precarga inmediata de Leads"""
+    prospectos = [p.to_dict() for p in listar_prospectos(db, limit=20000)]
+    return templates.TemplateResponse(request, "index.html", {
+        "initial_prospects": prospectos,
+        "initial_total": len(prospectos)
+    })
 
 
 @app.get("/api/v1/agencia/rubros/sugerir")
@@ -61,8 +65,7 @@ async def prospector_page(request: Request, db: Session = Depends(get_db)):
     enriquecidos = len([p for p in prospectos if p.get("status") == "ENRIQUECIDO" or p.get("whatsapp") or p.get("telefono")])
     contactados = len([p for p in prospectos if p.get("status") and "CONTACTADO" in p.get("status")])
     
-    return templates.TemplateResponse("agencia/prospector.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "agencia/prospector.html", {
         "active_tab": "prospector",
         "total": len(prospectos),
         "sin_web": sin_web,
@@ -138,8 +141,7 @@ async def prospectar_agent_reach(
 @app.get("/focus-group", response_class=HTMLResponse)
 async def focus_group_page(request: Request):
     """Pestaña 2: Focus Group AI"""
-    return templates.TemplateResponse("agencia/focus_group.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "agencia/focus_group.html", {
         "active_tab": "focusgroup"
     })
 
@@ -147,8 +149,7 @@ async def focus_group_page(request: Request):
 @app.get("/campanias", response_class=HTMLResponse)
 async def campanias_page(request: Request):
     """Pestaña 3: Gestión de Campañas & Clientes B2B"""
-    return templates.TemplateResponse("agencia/campañas.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "agencia/campañas.html", {
         "active_tab": "campaigns"
     })
 
@@ -156,8 +157,7 @@ async def campanias_page(request: Request):
 @app.get("/admin/dashboard", response_class=HTMLResponse)
 async def admin_dashboard(request: Request):
     """Dashboard CRM para usuario DEV"""
-    return templates.TemplateResponse("admin/dashboard.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "admin/dashboard.html", {
         "active_user": config.CRM_USER.upper()
     })
 
