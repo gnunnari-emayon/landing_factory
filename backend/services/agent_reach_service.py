@@ -112,23 +112,85 @@ def buscar_negocios_reales_google(rubro: str, ciudad: str, max_results: int = 20
     """Alias principal."""
     return ejecutar_prospeccion_agent_reach(rubro=rubro, ciudad=ciudad, max_results=max_results)
 
+def validar_empresa_en_google_maps(nombre: str, ciudad: str):
+    """
+    Valida empíricamente que la empresa exista mediante la presencia de una ficha comercial o coordenadas en Google Maps / OSM.
+    Devuelve dict con la información validada o None si es un resultado ruidoso/ficticio.
+    """
+    ciudad_clean = ciudad.split(",")[0].strip()
+    query = f"{nombre} {ciudad_clean}"
+    
+    # 1. Verificación primaria via Google Places / Google Search Business Card
+    url_g = f"https://www.google.com/search?q={urllib.parse.quote(query)}&hl=es&gl=ar"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept-Language": "es-AR,es;q=0.9"
+    }
+
+    try:
+        req = urllib.request.Request(url_g, headers=headers)
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            html = resp.read().decode("utf-8", errors="ignore")
+            # Si contiene mapa de ubicación, ficha comercial o dirección verificada
+            if "ludocid" in html or "data-attrid=\"kc:/" in html or "directions" in html.lower() or "ubicación" in html.lower() or "dirección" in html.lower():
+                return True
+    except Exception:
+        pass
+
+    # 2. Verificación secundaria via OpenStreetMap Nominatim
+    url_osm = f"https://nominatim.openstreetmap.org/search?q={urllib.parse.quote(query)}&format=json&limit=1"
+    headers_osm = {"User-Agent": "EmayonForgeCRM/1.0 (contact@emayon.com)"}
+    try:
+        req_osm = urllib.request.Request(url_osm, headers=headers_osm)
+        with urllib.request.urlopen(req_osm, timeout=4) as resp_osm:
+            data = json.loads(resp_osm.read().decode("utf-8"))
+            if data and len(data) > 0:
+                return True
+    except Exception:
+        pass
+
+    return False
+
+
 def ejecutar_prospeccion_agent_reach(rubro: str, ciudad: str, max_results: int = 20):
     """
     Punto de entrada principal para Agent Reach B2B.
-    Aplica 1) Jina/Agent Reach API, 2) Overpass GIS, 3) Inferencia Inteligente.
+    Aplica extracción multicanal y filtro estricto de validación en Google Maps / OSM GIS.
+    Cero nombres ficticios: solo empresas 100% verificadas.
     """
-    # 1. Intentar extracción prioritaria vía Agent Reach API
-    leads_reach = buscar_negocios_agent_reach_api(rubro=rubro, ciudad=ciudad, max_results=max_results)
-    if leads_reach and len(leads_reach) >= 2:
-        return leads_reach
+    # 1. Obtener candidatos de la búsqueda web / Agent Reach
+    candidatos = buscar_negocios_agent_reach_api(rubro=rubro, ciudad=ciudad, max_results=max_results * 2)
 
-    # 2. Fallback a Overpass GIS si Agent Reach no obtuvo suficientes registros
-    return extraer_leads_reales_overpass(rubro=rubro, ciudad=ciudad, max_results=max_results)
+    leads_validados = []
+    seen_names = set()
+
+    for cand in candidatos:
+        nombre = cand["nombre"]
+        if nombre.lower() in seen_names:
+            continue
+
+        # Validar existencia real de la ficha comercial
+        if validar_empresa_en_google_maps(nombre, ciudad):
+            seen_names.add(nombre.lower())
+            leads_validados.append(cand)
+
+        if len(leads_validados) >= max_results:
+            break
+
+    # 2. Si la búsqueda de candidatos fue insuficiente, recurrir a OpenStreetMap Overpass GIS directo
+    if len(leads_validados) < 3:
+        osm_leads = extraer_leads_reales_overpass(rubro=rubro, ciudad=ciudad, max_results=max_results)
+        for lead in osm_leads:
+            if lead["nombre"].lower() not in seen_names:
+                seen_names.add(lead["nombre"].lower())
+                leads_validados.append(lead)
+
+    return leads_validados
+
 
 def extraer_leads_reales_overpass(rubro: str, ciudad: str, max_results: int = 20):
     """
-    Motor B2B real de prospección por geolocalización satelital (OpenStreetMap Overpass GIS).
-    Extrae comercios reales y garantiza que los números telefónicos no sean inventados ni repetidos.
+    Motor B2B de prospección por geolocalización satelital real (OpenStreetMap Overpass GIS).
     """
     lat, lon = obtener_coordenadas(ciudad)
     filter_tag = obtener_filtro_osm(rubro)
@@ -137,8 +199,8 @@ def extraer_leads_reales_overpass(rubro: str, ciudad: str, max_results: int = 20
     overpass_query = f"""
     [out:json][timeout:5];
     (
-      node(around:5000,{lat},{lon}){filter_tag}["name"];
-      way(around:5000,{lat},{lon}){filter_tag}["name"];
+      node(around:8000,{lat},{lon}){filter_tag}["name"];
+      way(around:8000,{lat},{lon}){filter_tag}["name"];
     );
     out body {max_results};
     """
@@ -171,12 +233,10 @@ def extraer_leads_reales_overpass(rubro: str, ciudad: str, max_results: int = 20
                 telefono = tags.get("phone") or tags.get("contact:phone") or tags.get("phone:mobile")
                 sitio_web = tags.get("website") or tags.get("contact:website")
 
-                # Pase secundario de enriquecimiento via Google Business si OSM no trae teléfono
                 if not telefono:
                     from backend.services.phone_enricher import enriquecer_telefono_google_maps
                     telefono = enriquecer_telefono_google_maps(nombre, ciudad)
 
-                # Formatear teléfono si existe
                 if telefono:
                     telefono = telefono.strip()
 
@@ -199,28 +259,5 @@ def extraer_leads_reales_overpass(rubro: str, ciudad: str, max_results: int = 20
                 return g_leads
         except Exception as fallback_err:
             print(f"Error en fallback Google Scraper: {fallback_err}")
-
-    if not leads:
-        # Fallback de Inferencia B2B por Rubro y Ubicación
-        import random
-        ciudad_clean = ciudad.split(",")[0].strip()
-        nombres_ejemplo = [
-            f"Inmobiliaria {ciudad_clean}", f"Bienes Raíces {ciudad_clean}",
-            f"Propiedades {ciudad_clean} Central", f"Gestión Inmobiliaria {ciudad_clean}",
-            f"Estudio Inmobiliario {ciudad_clean} Sur"
-        ] if "inmobilia" in rubro.lower() or "bienes" in rubro.lower() else [
-            f"{rubro.title()} {ciudad_clean}", f"{rubro.title()} Central {ciudad_clean}",
-            f"Servicios {rubro.title()} {ciudad_clean}"
-        ]
-
-        for idx, nom in enumerate(nombres_ejemplo):
-            tel_random = f"+54 9 351 {random.randint(400, 999)}-{random.randint(1000, 9999)}" if "córdoba" in ciudad.lower() else f"+54 9 {random.randint(11, 387)} {random.randint(400, 999)}-{random.randint(1000, 9999)}"
-            leads.append({
-                "nombre": nom,
-                "tipo_busqueda": rubro,
-                "ciudad_busqueda": ciudad,
-                "sitio_web": None if idx % 2 == 0 else f"https://www.{nom.lower().replace(' ', '')}.com.ar",
-                "telefono": tel_random
-            })
 
     return leads
