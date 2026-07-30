@@ -287,6 +287,85 @@ async def iniciar_prospeccion_b2b(
     return {"status": "ok", "mensaje": f"Prospección finalizada para '{tipo}' en '{ciudad}'"}
 
 
+@app.post("/api/v1/agencia/b2b/prospectar-agent-reach")
+async def prospectar_agent_reach(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """
+    Endpoint dedicado de Agent Reach: búsqueda real de negocios con extracción
+    de teléfonos auténticos desde resultados de búsqueda web en vivo.
+    """
+    from backend.services.agent_reach_service import buscar_negocios_reales_google
+    from backend.services.domain_checker import es_sitio_web_propio
+
+    payload = await request.json()
+    rubro = payload.get("rubro", "Servicios generales")
+    ubicacion = payload.get("ubicacion", "Córdoba, AR")
+
+    # Ejecutar búsqueda real en vivo
+    leads = buscar_negocios_reales_google(rubro=rubro, ciudad=ubicacion, max_results=20)
+
+    nuevos = 0
+    for lead in leads:
+        pid = f"reach_{uuid.uuid4().hex[:8]}"
+        es_propio = es_sitio_web_propio(lead.get("sitio_web"))
+        tel = lead.get("telefono")
+
+        p_data = {
+            "place_id": pid,
+            "nombre": lead["nombre"],
+            "ciudad_busqueda": ubicacion,
+            "tipo_busqueda": rubro,
+            "telefono": tel or "Sin teléfono",
+            "whatsapp": tel if tel else None,
+            "email": None,
+            "sitio_web": lead.get("sitio_web") if es_propio else None,
+            "status": "ENRIQUECIDO" if tel else "SIN_CONTACTAR"
+        }
+        crear_prospecto(db, p_data)
+        nuevos += 1
+
+    return {
+        "status": "ok",
+        "nuevos": nuevos,
+        "mensaje": f"Agent Reach: {nuevos} negocios reales encontrados para '{rubro}' en '{ubicacion}'"
+    }
+
+
+@app.post("/api/v1/agencia/prospectos_b2b/sincronizar-contactos")
+async def sincronizar_contactos_b2b(db: Session = Depends(get_db)):
+    """
+    Recorre en lote la base de datos de prospectos que figuran 'Sin teléfono' y aplica 
+    el motor de enriquecimiento secundario de Google Business para completar sus contactos reales.
+    """
+    from backend.models.prospect import ProspectoB2BModel
+    from backend.services.phone_enricher import enriquecer_telefono_google_maps
+
+    prospectos_sin_tel = db.query(ProspectoB2BModel).filter(
+        (ProspectoB2BModel.telefono == "Sin teléfono") | (ProspectoB2BModel.telefono == None)
+    ).limit(30).all()
+
+    actualizados = 0
+    for p in prospectos_sin_tel:
+        tel_real = enriquecer_telefono_google_maps(p.nombre, p.ciudad_busqueda or "Argentina")
+        if tel_real:
+            p.telefono = tel_real
+            p.whatsapp = tel_real
+            p.status = "ENRIQUECIDO"
+            actualizados += 1
+
+    if actualizados > 0:
+        db.commit()
+
+    return {
+        "status": "ok",
+        "procesados": len(prospectos_sin_tel),
+        "actualizados": actualizados,
+        "mensaje": f"Sincronizados {actualizados} teléfonos reales en la base de datos."
+    }
+
+
 @app.get("/api/v1/agencia/dominio/verificar")
 async def verificar_dominio(nombre: str = ""):
     clean_nombre = "".join(e for e in nombre if e.isalnum()).lower() or "miempresa"

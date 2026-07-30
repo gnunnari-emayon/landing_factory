@@ -328,8 +328,15 @@
                         </div>
 
                         <div className="flex items-center justify-end gap-3 w-1/3">
-                            <button onClick={fetchProspects} title="Refrescar Lista" className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg border border-gray-700 transition-all flex items-center gap-1.5">
-                                <i className="fa-solid fa-rotate"></i> Actualizar
+                            <button onClick={async () => {
+                                setLoading(true);
+                                try {
+                                    await fetch('/api/v1/agencia/prospectos_b2b/sincronizar-contactos', { method: 'POST' });
+                                } catch(e) {}
+                                await fetchProspects();
+                                setLoading(false);
+                            }} title="Refrescar y Sincronizar Contactos" className="text-xs bg-indigo-700 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-lg border border-indigo-500 transition-all flex items-center gap-1.5 shadow-md">
+                                <i className={`fa-solid fa-rotate ${loading ? 'animate-spin' : ''}`}></i> Sincronizar & Actualizar
                             </button>
                             <div className="w-8 h-8 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-xs font-bold text-indigo-300">
                                 DEV
@@ -535,7 +542,7 @@
                                                         <tr key={idx} className="hover:bg-gray-800/40">
                                                             <td className="px-4 py-3 font-semibold text-white">{p.nombre}</td>
                                                             <td className="px-4 py-3 text-indigo-300 font-medium text-xs">
-                                                                <span className="bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-2.5 py-1 rounded-lg font-mono">
+                                                                <span className="inline-block bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-2.5 py-1 rounded-lg font-sans whitespace-normal break-words max-w-[200px] leading-tight">
                                                                     {p.tipo_busqueda || 'Servicios'}
                                                                 </span>
                                                             </td>
@@ -547,14 +554,14 @@
                                                                     <span className="text-gray-500 text-xs">Sin teléfono</span>
                                                                 )}
                                                             </td>
-                                                            <td className="px-4 py-3 text-gray-400 font-mono text-xs">
+                                                            <td className="px-4 py-3 text-gray-400 font-mono text-xs whitespace-nowrap">
                                                                 {formatDate(p.fecha_creacion || p.created_at)}
                                                             </td>
                                                             <td className="px-4 py-3">
                                                                 {p.sitio_web ? (
-                                                                    <span className="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs px-2.5 py-1 rounded-full">Con Sitio Web</span>
+                                                                    <span className="inline-flex items-center gap-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs px-2.5 py-1 rounded-full whitespace-nowrap">Con Sitio Web</span>
                                                                 ) : (
-                                                                    <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs px-2.5 py-1 rounded-full">Sin Sitio Web 🔥</span>
+                                                                    <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs px-2.5 py-1 rounded-full whitespace-nowrap">Sin Sitio Web 🔥</span>
                                                                 )}
                                                             </td>
                                                             <td className="px-4 py-3 text-right">
