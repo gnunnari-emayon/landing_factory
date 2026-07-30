@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Café de Especialidad Norte — Sitio Oficial & Solución Digital</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #090d16; color: #f3f4f6; font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-card { background: rgba(17, 24, 39, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .hero-gradient { background: radial-gradient(circle at top center, rgba(99, 102, 241, 0.15) 0%, transparent 70%); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between hero-gradient">
+
+    <!-- NAV BAR -->
+    <header class="max-w-6xl mx-auto w-full px-6 py-6 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/20">
+                <i class="fa-solid fa-briefcase"></i>
+            </div>
+            <span class="text-lg font-bold text-white tracking-tight">Café de Especialidad Norte</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-3 py-1 rounded-full font-mono uppercase font-bold">gastronomia</span>
+            <a href="https://wa.me/543874995566?text=Hola%20Café%20de%20Especialidad%20Norte,%20preparé%20una%20demo%20comercial%20exclusiva%20de%20su%20nuevo%20sitio%20web%20(cafédeespecialidadnorte.com):%20http://localhost:8000/static/demos/pyme_004.html" target="_blank" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-600/20">
+                <i class="fa-brands fa-whatsapp"></i> Contactar
+            </a>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <main class="max-w-6xl mx-auto w-full px-6 py-12 space-y-16">
+        <section class="text-center space-y-6 max-w-3xl mx-auto pt-6">
+            <div class="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs px-4 py-1.5 rounded-full font-medium">
+                <i class="fa-solid fa-sparkles text-amber-400"></i> Calidad & Servicio de Excelencia en Gastronomía
+            </div>
+            <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight tracking-tight">
+                Impulsamos la excelencia de <span class="bg-gradient-to-r from-indigo-400 via-sky-400 to-emerald-400 bg-clip-text text-transparent">Café de Especialidad Norte</span>
+            </h1>
+            <p class="text-gray-400 text-base md:text-lg leading-relaxed">
+                Brindamos atención personalizada, rapidez y la máxima confiabilidad comercial en el rubro de <strong class="text-gray-200">Gastronomía</strong>. Soluciones diseñadas a la medida de tus necesidades.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4 pt-4">
+                <a href="https://checkout.dlocalgo.com/v1/pay/demo-350-usd" target="_blank" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 px-8 rounded-xl shadow-xl shadow-indigo-600/25 transition-all text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-lock"></i> Adquirir Dominio cafédeespecialidadnorte.com ($350 USD)
+                </a>
+                <a href="https://wa.me/543874995566?text=Hola%20Café%20de%20Especialidad%20Norte,%20preparé%20una%20demo%20comercial%20exclusiva%20de%20su%20nuevo%20sitio%20web%20(cafédeespecialidadnorte.com):%20http://localhost:8000/static/demos/pyme_004.html" target="_blank" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3.5 px-6 rounded-xl border border-gray-700 transition-all text-sm flex items-center justify-center gap-2"><i class="fa-brands fa-whatsapp text-emerald-400"></i> Consultar por WhatsApp</a>
+            </div>
+        </section>
+
+        <!-- FEATURES / SERVICIOS GRID -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="glass-card p-6 rounded-2xl space-y-3">
+                <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white">Garantía & Confianza</h3>
+                <p class="text-sm text-gray-400 leading-relaxed">Procesos respaldados por estándares internacionales de calidad y cumplimiento asegurado.</p>
+            </div>
+            <div class="glass-card p-6 rounded-2xl space-y-3">
+                <div class="w-12 h-12 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white">Respuesta Inmediata</h3>
+                <p class="text-sm text-gray-400 leading-relaxed">Atención ágil y canales directos para asesorarte sin esperas en todo momento.</p>
+            </div>
+            <div class="glass-card p-6 rounded-2xl space-y-3">
+                <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white">Atención Personalizada</h3>
+                <p class="text-sm text-gray-400 leading-relaxed">Soluciones a la medida de tu presupuesto con foco en la satisfacción completa.</p>
+            </div>
+        </section>
+
+        <!-- BANNER DE CONVERSIÓN COMERCIAL -->
+        <section class="glass-card p-8 rounded-3xl border border-indigo-500/20 text-center space-y-4 relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-indigo-600/10 rounded-full blur-2xl"></div>
+            <h2 class="text-2xl font-bold text-white">¿Listo para potenciar la presencia de Café de Especialidad Norte?</h2>
+            <p class="text-sm text-gray-400 max-w-xl mx-auto">Reserva la propiedad intelectual del dominio oficial <strong class="text-indigo-300 font-mono">cafédeespecialidadnorte.com</strong> y activa la plataforma comercial hoy mismo.</p>
+            <div class="pt-2">
+                <a href="https://checkout.dlocalgo.com/v1/pay/demo-350-usd" target="_blank" class="inline-flex bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-emerald-600/20 transition-all text-sm items-center gap-2">
+                    <i class="fa-solid fa-cart-shopping"></i> Confirmar Propuesta ($350 USD)
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="max-w-6xl mx-auto w-full px-6 py-8 border-t border-gray-800/80 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500 gap-4">
+        <p>© 2026 Café de Especialidad Norte. Todos los derechos reservados.</p>
+        <p class="font-mono text-gray-600">Demo Comercial Generada por Emayon Forge — Nicho Landing Factory</p>
+    </footer>
+
+</body>
+</html>
