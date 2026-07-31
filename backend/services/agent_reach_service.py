@@ -54,9 +54,14 @@ def buscar_negocios_agent_reach_api(rubro: str, ciudad: str, max_results: int = 
     
     ddg_url = f"https://html.duckduckgo.com/html/?q={urllib.parse.quote(query)}&kl=ar-es"
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "es-AR,es;q=0.9"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "es-AR,es-419;q=0.9,es;q=0.8,en;q=0.7",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+        "Upgrade-Insecure-Requests": "1"
     }
 
     leads = []
@@ -183,10 +188,15 @@ def ejecutar_prospeccion_agent_reach(rubro: str, ciudad: str, max_results: int =
         if solo_sin_web and es_sitio_web_propio(sitio):
             continue
 
-        # Poka-Yoke de Geolocalización: validar la empresa en Google Maps/OSM o conservar candidato si proviene del scraper de DuckDuckGo
-        if validar_empresa_en_google_maps(nombre, ciudad) or len(candidatos) > 0:
-            seen_names.add(nombre.lower())
-            leads_validados.append(cand)
+        # Re-enriquecimiento Poka-Yoke: Si el candidato no trajo teléfono en el primer pase, forzar búsqueda dedicada multicanal
+        if not cand.get("telefono") or cand.get("telefono") == "Por verificar":
+            from backend.services.phone_enricher import enriquecer_telefono_google_maps
+            tel_reintentado = enriquecer_telefono_google_maps(nombre, ciudad)
+            if tel_reintentado:
+                cand["telefono"] = tel_reintentado
+
+        seen_names.add(nombre.lower())
+        leads_validados.append(cand)
 
         if len(leads_validados) >= max_results:
             break
@@ -199,6 +209,13 @@ def ejecutar_prospeccion_agent_reach(rubro: str, ciudad: str, max_results: int =
                 sitio = lead.get("sitio_web")
                 if solo_sin_web and es_sitio_web_propio(sitio):
                     continue
+
+                if not lead.get("telefono") or lead.get("telefono") == "Por verificar":
+                    from backend.services.phone_enricher import enriquecer_telefono_google_maps
+                    tel_osm = enriquecer_telefono_google_maps(lead["nombre"], ciudad)
+                    if tel_osm:
+                        lead["telefono"] = tel_osm
+
                 seen_names.add(lead["nombre"].lower())
                 leads_validados.append(lead)
 

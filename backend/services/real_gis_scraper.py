@@ -48,14 +48,15 @@ def extraer_leads_reales_geolocalizados(tipo: str, ciudad: str, max_results: int
     tag_filter = obtener_filtro_osm_estricto(tipo)
 
     overpass_endpoints = [
-        "https://overpass-api.de/api/interpreter",
         "https://overpass.kumi.systems/api/interpreter",
-        "https://overpass.private.coffee/api/interpreter"
+        "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+        "https://overpass.private.coffee/api/interpreter",
+        "https://overpass-api.de/api/interpreter"
     ]
     overpass_query = f"""
-    [out:json][timeout:25];
-    node(around:12000,{lat},{lon}){tag_filter}["name"];
-    out body 50;
+    [out:json][timeout:10];
+    node(around:8000,{lat},{lon}){tag_filter}["name"];
+    out body 40;
     """
 
     leads = []

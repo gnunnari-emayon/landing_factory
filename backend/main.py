@@ -35,13 +35,19 @@ templates_dir = os.path.join(frontend_dir, "templates")
 templates = Jinja2Templates(directory=templates_dir)
 
 
+from backend.data.latam_database import RUBROS_LATAM, UBICACIONES_LATAM
+from backend.models.prospect import ProspectoB2BModel
+
 @app.get("/", response_class=HTMLResponse)
-async def home_page(request: Request, db: Session = Depends(get_db)):
-    """Página principal Agencia Standalone (React + Tailwind) con precarga inmediata de Leads"""
-    prospectos = [p.to_dict() for p in listar_prospectos(db, limit=20000)]
+def home_page(request: Request, db: Session = Depends(get_db)):
+    """Página principal Agencia Standalone (React + Tailwind) con precarga ultrarrápida de Leads"""
+    total_db = db.query(ProspectoB2BModel).count()
+    prospectos_iniciales = [p.to_dict() for p in listar_prospectos(db, limit=100)]
     return templates.TemplateResponse(request, "index.html", {
-        "initial_prospects": prospectos,
-        "initial_total": len(prospectos)
+        "initial_prospects": prospectos_iniciales,
+        "initial_total": total_db,
+        "rubros_latam": RUBROS_LATAM,
+        "ubicaciones_latam": UBICACIONES_LATAM
     })
 
 
@@ -203,14 +209,20 @@ async def generate_landing_api(payload: dict):
 
 # Endpoints API v1 Agencia B2B (Conectados a Base de Datos PostgreSQL/SQLite)
 @app.get("/api/v1/agencia/prospectos_b2b/")
-async def listar_prospectos_b2b(limit: int = 20000, db: Session = Depends(get_db)):
+def listar_prospectos_b2b(limit: int = 100, offset: int = 0, db: Session = Depends(get_db)):
     from backend.models.prospect import ProspectoB2BModel
     total_db = db.query(ProspectoB2BModel).count()
-    prospectos = listar_prospectos(db, limit=limit)
-    items = [p.to_dict() for p in prospectos]
+    
+    query = db.query(ProspectoB2BModel).order_by(ProspectoB2BModel.id.desc())
+    if limit > 0:
+        query = query.offset(offset).limit(limit)
+    prospectos_models = query.all()
+    items = [p.to_dict() for p in prospectos_models]
     return {
         "total": total_db,
-        "items": items
+        "items": items,
+        "limit": limit,
+        "offset": offset
     }
 
 
@@ -271,7 +283,7 @@ async def iniciar_prospeccion_b2b(
         except Exception as err:
             print(f"Error consultando Google Places API: {err}")
 
-    # Si no hay API key o se requieren mas leads reales, ejecutar el Scraper Multicanal en vivo
+    # Fallback si no hay API key de Google: Scraper Web Multicanal geolocalizado
     if len(nuevos_prospectos) < 50:
         from backend.services.web_scraper import extraer_leads_reales_duckduckgo
         leads_scraped = extraer_leads_reales_duckduckgo(tipo=tipo, ciudad=ciudad, max_results=50)
@@ -286,11 +298,11 @@ async def iniciar_prospeccion_b2b(
                 "nombre": lead["nombre"],
                 "ciudad_busqueda": ciudad,
                 "tipo_busqueda": tipo,
-                "telefono": tel_real or "Sin teléfono",
-                "whatsapp": tel_real if tel_real else None,
+                "telefono": tel_real or "Por verificar",
+                "whatsapp": tel_real if (tel_real and tel_real != "Por verificar") else None,
                 "email": None,
                 "sitio_web": lead.get("sitio_web") if es_propio else None,
-                "status": "ENRIQUECIDO" if tel_real else "SIN_CONTACTAR"
+                "status": "ENRIQUECIDO" if (tel_real and tel_real != "Por verificar") else "PENDIENTE"
             }
             crear_prospecto(db, p_data)
             nuevos_prospectos.append(p_data)
