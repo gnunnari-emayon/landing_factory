@@ -400,32 +400,102 @@ async def generar_demo_prospecto(place_id: str, payload: dict, db: Session = Dep
         button_wa_html = f'<a href="{link_wa}" target="_blank" class="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white font-bold py-3.5 px-6 rounded-xl border border-emerald-500/30 hover:border-emerald-500 transition-all duration-200 text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/10 hover:shadow-emerald-500/20"><i class="fa-brands fa-whatsapp text-lg"></i> Consultar por WhatsApp</a>' if link_wa else ''
         nav_wa_link = link_wa if link_wa else '#'
 
-        # Formatear características / servicios adaptados al rubro
+        # 1. Formatear características / servicios adaptados al rubro (Grid 6 items)
         features_html = ""
         for feat in theme["features"]:
             features_html += f"""
-            <div class="glass-card p-6 rounded-2xl space-y-4">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-transform duration-300 group-hover:scale-110" style="background: rgba(255,255,255,0.04); color: {theme['accent']}; border: 1px solid {theme['border']};">
-                    <i class="fa-solid {feat['icon']}"></i>
+            <div class="glass-card p-6 rounded-2xl space-y-4 group">
+                <div class="flex justify-between items-center">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-transform duration-300 group-hover:scale-110" style="background: rgba(255,255,255,0.04); color: {theme['accent']}; border: 1px solid {theme['border']};">
+                        <i class="fa-solid {feat['icon']}"></i>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style="background: rgba(255,255,255,0.03); color: {theme['accent']}; border: 1px solid {theme['border']};">{feat.get('tag', 'Servicio')}</span>
                 </div>
-                <h3 class="text-xl font-bold text-white tracking-tight" style="font-family: {theme['font_display']};">{feat['title']}</h3>
+                <h3 class="text-xl font-bold text-white tracking-tight display-font">{feat['title']}</h3>
                 <p class="text-sm text-slate-400 leading-relaxed">{feat['desc']}</p>
+            </div>
+            """
+
+        # 2. Formatear noticias / artículos del sector (Grid 3 items)
+        news_html = ""
+        for item in theme.get("news", []):
+            news_html += f"""
+            <div class="glass-card p-6 rounded-2xl space-y-4 group">
+                <div class="flex items-center justify-between text-xs text-slate-400">
+                    <span class="font-semibold text-emerald-400 flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-[9px]"></i> {item['date']}</span>
+                    <span class="font-mono text-slate-500">{item['read_time']} de lectura</span>
+                </div>
+                <h3 class="text-lg font-bold text-white group-hover:text-amber-400 transition-colors leading-snug">{item['title']}</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">{item['snippet']}</p>
+                <div class="pt-2">
+                    <a href="{nav_wa_link}" target="_blank" class="text-xs font-semibold inline-flex items-center gap-1.5" style="color: {theme['accent']};">Leer artículo completo <i class="fa-solid fa-arrow-right text-[10px]"></i></a>
+                </div>
+            </div>
+            """
+
+        # 3. Formatear reseñas / prueba social (Grid 3 items)
+        reviews_html = ""
+        for rev in theme.get("reviews", []):
+            reviews_html += f"""
+            <div class="glass-card p-6 rounded-2xl space-y-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex text-amber-400 text-xs gap-1">
+                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                    </div>
+                    <span class="text-[11px] text-slate-400 font-mono flex items-center gap-1"><i class="fa-brands fa-google text-slate-400"></i> {rev['city']}</span>
+                </div>
+                <p class="text-sm text-slate-300 italic leading-relaxed">"{rev['comment']}"</p>
+                <div class="flex items-center gap-3 pt-2 border-t border-white/5">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white" style="background-color: {theme['accent']}; font-family: {theme['font_display']};">
+                        {rev['name'][0]}
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-white">{rev['name']}</div>
+                        <div class="text-[10px] text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-circle-check text-[8px]"></i> Cliente Verificado</div>
+                    </div>
+                </div>
+            </div>
+            """
+
+        # 4. Formatear módulos enterprise a desbloquear (Grid 6 items)
+        enterprise_html = ""
+        for mod in theme.get("enterprise_modules", []):
+            enterprise_html += f"""
+            <div class="glass-card p-6 rounded-2xl space-y-4 relative overflow-hidden group hover:border-amber-500/40">
+                <div class="flex items-center justify-between">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style="background: rgba(255,255,255,0.05); color: {theme['accent']}; border: 1px solid {theme['border']};">
+                        <i class="fa-solid {mod['icon']}"></i>
+                    </div>
+                    <span class="text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1">
+                        <i class="fa-solid fa-lock text-[9px]"></i> Módulo A Desbloquear
+                    </span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-400 uppercase font-mono tracking-wider">{mod['tag']}</span>
+                    <h3 class="text-lg font-bold text-white tracking-tight">{mod['title']}</h3>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">{mod['desc']}</p>
+                <div class="pt-2">
+                    <a href="{nav_wa_link}" target="_blank" class="w-full text-xs font-semibold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all bg-white/5 hover:bg-amber-500/20 text-slate-300 hover:text-amber-300 border border-white/10 hover:border-amber-500/30">
+                        <i class="fa-solid fa-key text-[10px]"></i> Solicitar Activación de Módulo
+                    </a>
+                </div>
             </div>
             """
 
         # Generar contenido HTML con Taste DNA y estética personalizada
         filepath = os.path.join(demos_dir, f"{place_id}.html")
         html_demo_content = f"""<!DOCTYPE html>
-<html lang="es" class="dark" style="background-color: {theme['bg']};">
+<html lang="es" class="dark scroll-smooth" style="background-color: {theme['bg']};">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{nombre} — Sitio Oficial & Solución Digital</title>
+    <title>{nombre} — Sitio Oficial Enterprise & Plataforma Digital</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="{theme['font_google']}" rel="stylesheet">
     <style>
-        html, body {{ background-color: {theme['bg']}; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; padding: 0; }}
+        html, body {{ background-color: {theme['bg']}; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; padding: 0; scroll-behavior: smooth; }}
         .display-font {{ font-family: {theme['font_display']}; }}
         .glass-card {{ background: {theme['card_bg']}; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid {theme['border']}; box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.08); transition: all 0.25s ease; }}
         .glass-card:hover {{ border-color: {theme['border_hover']}; transform: translateY(-2px); }}
@@ -436,64 +506,171 @@ async def generar_demo_prospecto(place_id: str, payload: dict, db: Session = Dep
 </head>
 <body class="min-h-screen flex flex-col justify-between antialiased hero-bg text-slate-100" style="background-color: {theme['bg']};">
 
-    <!-- NAV BAR -->
-    <header class="max-w-6xl mx-auto w-full px-6 py-6 flex justify-between items-center relative z-10 border-b border-white/5">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shadow-lg" style="background-color: {theme['accent']}; shadow-color: {theme['glow']};">
-                <i class="fa-solid fa-briefcase"></i>
-            </div>
-            <span class="text-lg font-bold text-white tracking-tight display-font">{nombre}</span>
-        </div>
-        <div class="flex items-center gap-3">
-            <span class="text-xs px-3.5 py-1.5 rounded-full font-mono uppercase font-bold tracking-wider" style="background: rgba(255,255,255,0.03); color: {theme['accent']}; border: 1px solid {theme['border']};">{theme['badge']}</span>
-            <a href="{nav_wa_link}" target="_blank" class="text-xs bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white font-bold px-4 py-2 rounded-xl transition-all duration-200 border border-emerald-500/30 hover:border-emerald-500 flex items-center gap-1.5 shadow-sm">
-                <i class="fa-brands fa-whatsapp text-sm"></i> Contactar
+    <!-- STICKY NAVBAR -->
+    <header class="sticky top-0 z-50 backdrop-blur-xl border-b border-white/5 bg-slate-950/70">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#hero" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shadow-lg transition-transform group-hover:scale-105" style="background-color: {theme['accent']};">
+                    <i class="fa-solid fa-briefcase"></i>
+                </div>
+                <span class="text-lg font-bold text-white tracking-tight display-font">{nombre}</span>
             </a>
+
+            <!-- NAV LINKS -->
+            <nav class="hidden md:flex items-center gap-6 text-xs font-medium text-slate-300">
+                <a href="#hero" class="hover:text-white transition-colors">Inicio</a>
+                <a href="#servicios" class="hover:text-white transition-colors">Servicios</a>
+                <a href="#noticias" class="hover:text-white transition-colors">Novedades</a>
+                <a href="#reseñas" class="hover:text-white transition-colors">Opiniones</a>
+                <a href="#enterprise" class="text-amber-400 font-semibold hover:text-amber-300 flex items-center gap-1"><i class="fa-solid fa-lock text-[10px]"></i> Enterprise</a>
+                <a href="#contacto" class="hover:text-white transition-colors">Ubicación</a>
+            </nav>
+
+            <div class="flex items-center gap-3">
+                <a href="#enterprise" class="hidden sm:inline-flex text-xs px-3.5 py-2 rounded-xl font-bold transition-all border border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 flex items-center gap-1.5">
+                    <i class="fa-solid fa-shield-halved text-xs"></i> 🔒 Desbloquear
+                </a>
+                <a href="{nav_wa_link}" target="_blank" class="text-xs bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white font-bold px-4 py-2 rounded-xl transition-all duration-200 border border-emerald-500/30 hover:border-emerald-500 flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-brands fa-whatsapp text-sm"></i> Contactar
+                </a>
+            </div>
         </div>
     </header>
 
     <!-- HERO SECTION -->
-    <main class="max-w-6xl mx-auto w-full px-6 py-16 space-y-20 relative z-10">
-        <section class="text-center space-y-6 max-w-3xl mx-auto pt-4">
-            <div class="inline-flex items-center gap-2 text-xs px-4 py-1.5 rounded-full font-medium shadow-sm" style="background: rgba(255,255,255,0.03); border: 1px solid {theme['border']}; color: {theme['accent']};">
-                <i class="fa-solid fa-sparkles text-amber-400"></i> {theme['badge']} en {ciudad_prospecto}
+    <main class="max-w-7xl mx-auto w-full px-6 py-16 space-y-24 relative z-10" id="hero">
+        <section class="text-center space-y-6 max-w-4xl mx-auto pt-4">
+            <div class="inline-flex flex-wrap justify-center items-center gap-3 text-xs px-4 py-2 rounded-full font-medium shadow-sm" style="background: rgba(255,255,255,0.03); border: 1px solid {theme['border']}; color: {theme['accent']};">
+                <span class="flex items-center gap-1.5 text-emerald-400 font-bold"><i class="fa-solid fa-circle text-[8px]"></i> Atendiendo en {ciudad_prospecto}</span>
+                <span class="text-slate-600">•</span>
+                <span><i class="fa-solid fa-star text-amber-400"></i> 4.9 (Google Reviews)</span>
+                <span class="text-slate-600">•</span>
+                <span>{theme['badge']}</span>
             </div>
             <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight tracking-tight display-font">
-                Impulsamos la presencia de <span class="bg-gradient-to-r {theme['accent_gradient']} bg-clip-text text-transparent">{nombre}</span>
+                Impulsamos la presencia digital de <span class="bg-gradient-to-r {theme['accent_gradient']} bg-clip-text text-transparent">{nombre}</span>
             </h1>
-            <p class="text-slate-300 text-base md:text-lg leading-relaxed max-w-2xl mx-auto">
+            <p class="text-slate-300 text-base md:text-lg leading-relaxed max-w-3xl mx-auto">
                 {ctx_web['resumen_web']}
             </p>
             <div class="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-                <a href="https://checkout.dlocalgo.com/v1/pay/demo-{precio}-usd" target="_blank" class="text-white font-bold py-3.5 px-8 rounded-xl transition-all duration-200 text-sm flex items-center justify-center gap-2 glow-btn" style="background-color: {theme['accent']};">
+                <a href="https://checkout.dlocalgo.com/v1/pay/demo-{precio}-usd" target="_blank" class="text-white font-bold py-4 px-8 rounded-xl transition-all duration-200 text-sm flex items-center justify-center gap-2 glow-btn" style="background-color: {theme['accent']};">
                     <i class="fa-solid fa-lock"></i> Adquirir Dominio {dominio} (${precio} USD)
                 </a>
                 {button_wa_html}
             </div>
         </section>
 
-        <!-- FEATURES / SERVICIOS GRID -->
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {features_html}
+        <!-- SECCIÓN 1: SERVICIOS & ESPECIALIDADES -->
+        <section id="servicios" class="space-y-8">
+            <div class="text-center space-y-2">
+                <span class="text-xs font-bold uppercase font-mono tracking-widest text-slate-400">Oferta Comercial</span>
+                <h2 class="text-3xl font-extrabold text-white tracking-tight display-font">Servicios & Especialidades Destacadas</h2>
+                <p class="text-sm text-slate-400 max-w-xl mx-auto">Soluciones profesionales diseñadas a la medida para garantizar el máximo valor a nuestros clientes.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {features_html}
+            </div>
         </section>
 
-        <!-- BANNER DE CONVERSIÓN COMERCIAL -->
+        <!-- SECCIÓN 2: NOVEDADES & NOTICIAS DEL SECTOR -->
+        <section id="noticias" class="space-y-8">
+            <div class="text-center space-y-2">
+                <span class="text-xs font-bold uppercase font-mono tracking-widest text-slate-400">Actualidad & Contenido</span>
+                <h2 class="text-3xl font-extrabold text-white tracking-tight display-font">Novedades & Noticias del Sector</h2>
+                <p class="text-sm text-slate-400 max-w-xl mx-auto">Información de interés, tendencias y recomendaciones preparadas por nuestro equipo.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {news_html}
+            </div>
+        </section>
+
+        <!-- SECCIÓN 3: PRUEBA SOCIAL & RESEÑAS -->
+        <section id="reseñas" class="space-y-8">
+            <div class="text-center space-y-2">
+                <span class="text-xs font-bold uppercase font-mono tracking-widest text-slate-400">Confianza Comprobada</span>
+                <h2 class="text-3xl font-extrabold text-white tracking-tight display-font">Opiniones de Nuestros Clientes</h2>
+                <p class="text-sm text-slate-400 max-w-xl mx-auto">La satisfacción de quienes confían en {nombre} diariamente.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {reviews_html}
+            </div>
+        </section>
+
+        <!-- SECCIÓN 4: 🔒 MÓDULOS ENTERPRISE A DESBLOQUEAR -->
+        <section id="enterprise" class="space-y-8 pt-6">
+            <div class="glass-card p-8 md:p-10 rounded-3xl space-y-8 relative overflow-hidden border border-amber-500/30">
+                <div class="absolute -top-32 -right-32 w-80 h-80 rounded-full blur-3xl opacity-20 pointer-events-none bg-amber-500"></div>
+                <div class="text-center space-y-3 max-w-2xl mx-auto">
+                    <span class="text-xs font-bold uppercase font-mono tracking-widest px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 inline-flex items-center gap-1.5">
+                        <i class="fa-solid fa-crown text-amber-400"></i> Potencial Enterprise de {nombre}
+                    </span>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight display-font">Módulos & Capacidades a Desbloquear</h2>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        Esta demo representa la base visual de tu plataforma. Al contratar tu plan oficial, podrás desbloquear estas 6 funciones avanzadas para automatizar tu negocio al 100%.
+                    </p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {enterprise_html}
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 5: UBICACIÓN & HORARIOS -->
+        <section id="contacto" class="glass-card p-8 md:p-10 rounded-3xl relative overflow-hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div class="space-y-6">
+                    <span class="text-xs font-bold uppercase font-mono tracking-widest text-emerald-400 flex items-center gap-2">
+                        <i class="fa-solid fa-location-dot"></i> Ubicación & Atención Directa
+                    </span>
+                    <h2 class="text-3xl font-extrabold text-white tracking-tight display-font">Atención Presencial & Canales Oficiales en {ciudad_prospecto}</h2>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        Estamos comprometidos a brindar respuestas rápidas y asesoría transparente. Contáctanos por nuestro canal directo o solicita una reunión comercial.
+                    </p>
+                    <div class="space-y-3 text-xs text-slate-300">
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-clock text-amber-400 w-5 text-center"></i> <span><strong>Horarios:</strong> {theme.get('hours', 'Lunes a Viernes 09:00 - 18:00 hs')}</span></div>
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-map-location-dot text-sky-400 w-5 text-center"></i> <span><strong>Ciudad:</strong> {ciudad_prospecto}</span></div>
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-globe text-indigo-400 w-5 text-center"></i> <span><strong>Dominio Exclusivo:</strong> {dominio}</span></div>
+                    </div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl text-center space-y-4 border border-white/10" style="background: rgba(0,0,0,0.2);">
+                    <div class="w-12 h-12 mx-auto rounded-full flex items-center justify-center text-xl text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+                        <i class="fa-solid fa-headset"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white display-font">¿Dudas sobre la implementación?</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">Nuestro equipo comercial te guiará en el proceso de alta y migración de tu dominio.</p>
+                    <a href="{nav_wa_link}" target="_blank" class="w-full text-white font-bold py-3.5 px-6 rounded-xl transition-all duration-200 text-xs flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-900/30">
+                        <i class="fa-brands fa-whatsapp text-base"></i> Iniciar Chat en WhatsApp
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- BANNER DE CONVERSIÓN FINAL -->
         <section class="glass-card p-8 md:p-10 rounded-3xl text-center space-y-4 relative overflow-hidden">
             <div class="absolute -top-24 -right-24 w-60 h-60 rounded-full blur-3xl opacity-20 pointer-events-none" style="background-color: {theme['accent']};"></div>
             <h2 class="text-2xl md:text-3xl font-bold text-white tracking-tight display-font">¿Listo para activar la plataforma digital de {nombre}?</h2>
             <p class="text-sm md:text-base text-slate-400 max-w-xl mx-auto leading-relaxed">Asegura la propiedad exclusiva del dominio <strong class="font-mono text-white px-1.5 py-0.5 rounded bg-white/5 border border-white/10">{dominio}</strong> y pon en marcha tu presencia comercial oficial hoy mismo.</p>
-            <div class="pt-4">
-                <a href="https://checkout.dlocalgo.com/v1/pay/demo-{precio}-usd" target="_blank" class="inline-flex text-white font-bold py-3.5 px-8 rounded-xl transition-all duration-200 text-sm items-center gap-2 glow-btn" style="background-color: {theme['accent']};">
+            <div class="pt-4 flex flex-col sm:flex-row justify-center gap-4">
+                <a href="https://checkout.dlocalgo.com/v1/pay/demo-{precio}-usd" target="_blank" class="inline-flex text-white font-bold py-3.5 px-8 rounded-xl transition-all duration-200 text-sm items-center justify-center gap-2 glow-btn" style="background-color: {theme['accent']};">
                     <i class="fa-solid fa-cart-shopping"></i> {theme['cta_text']} (${precio} USD)
+                </a>
+                <a href="#enterprise" class="inline-flex text-amber-300 font-bold py-3.5 px-8 rounded-xl transition-all duration-200 text-sm items-center justify-center gap-2 border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20">
+                    <i class="fa-solid fa-shield-halved"></i> Ver Módulos Enterprise
                 </a>
             </div>
         </section>
     </main>
 
+    <!-- WIDGET FLOTANTE DE WHATSAPP -->
+    <a href="{nav_wa_link}" target="_blank" class="fixed bottom-6 right-6 z-50 w-14 h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center text-2xl shadow-2xl shadow-emerald-900/50 transition-transform duration-300 hover:scale-110 border-2 border-white/20">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
     <!-- FOOTER -->
-    <footer class="max-w-6xl mx-auto w-full px-6 py-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 gap-4 relative z-10">
+    <footer class="max-w-7xl mx-auto w-full px-6 py-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 gap-4 relative z-10">
         <p>© 2026 {nombre}. Todos los derechos reservados.</p>
-        <p class="font-mono text-slate-500">Demo Comercial Generada por Emayon Forge — Nicho Landing Factory</p>
+        <p class="font-mono text-slate-500">Demo Comercial Generada por Emayon Forge — Nicho Landing Factory Enterprise</p>
     </footer>
 
 </body>
