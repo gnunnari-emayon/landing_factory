@@ -60,14 +60,25 @@ async def sugerir_ubicaciones(q: str = ""):
 @app.get("/prospector", response_class=HTMLResponse)
 async def prospector_page(request: Request, db: Session = Depends(get_db)):
     """Pestaña 1: Prospector Google Maps"""
-    prospectos = [p.to_dict() for p in listar_prospectos(db)]
-    sin_web = len([p for p in prospectos if not p.get("sitio_web")])
-    enriquecidos = len([p for p in prospectos if p.get("status") == "ENRIQUECIDO" or p.get("whatsapp") or p.get("telefono")])
-    contactados = len([p for p in prospectos if p.get("status") and "CONTACTADO" in p.get("status")])
+    from backend.models.prospect import ProspectoB2BModel
     
+    total = db.query(ProspectoB2BModel).count()
+    sin_web = db.query(ProspectoB2BModel).filter(
+        (ProspectoB2BModel.sitio_web == None) | (ProspectoB2BModel.sitio_web == "")
+    ).count()
+    enriquecidos = db.query(ProspectoB2BModel).filter(
+        (ProspectoB2BModel.status == "ENRIQUECIDO") | (ProspectoB2BModel.telefono != None) | (ProspectoB2BModel.whatsapp != None)
+    ).count()
+    contactados = db.query(ProspectoB2BModel).filter(
+        ProspectoB2BModel.status.like("%CONTACTADO%")
+    ).count()
+
+    prospectos_models = db.query(ProspectoB2BModel).order_by(ProspectoB2BModel.id.desc()).limit(200).all()
+    prospectos = [p.to_dict() for p in prospectos_models]
+
     return templates.TemplateResponse(request, "agencia/prospector.html", {
         "active_tab": "prospector",
-        "total": len(prospectos),
+        "total": total,
         "sin_web": sin_web,
         "enriquecidos": enriquecidos,
         "contactados": contactados,
@@ -119,6 +130,8 @@ async def prospectar_agent_reach(
 
     guardados = 0
     for lead in leads_hallados:
+        telefono = lead.get("telefono") or "Por verificar"
+
         es_propio = es_sitio_web_propio(lead.get("sitio_web"))
         p_data = {
             "place_id": f"reach_{uuid.uuid4().hex[:8]}",
@@ -126,9 +139,9 @@ async def prospectar_agent_reach(
             "tipo_busqueda": rubro,
             "ciudad_busqueda": ubicacion,
             "sitio_web": lead.get("sitio_web") if es_propio else None,
-            "telefono": lead.get("telefono") or "Sin teléfono",
-            "whatsapp": lead.get("telefono") if lead.get("telefono") else None,
-            "status": "ENRIQUECIDO" if lead.get("telefono") else "SIN_CONTACTAR"
+            "telefono": telefono,
+            "whatsapp": telefono if telefono != "Por verificar" else None,
+            "status": "ENRIQUECIDO" if telefono != "Por verificar" else "PENDIENTE"
         }
         crear_prospecto(db, p_data)
         guardados += 1
@@ -287,50 +300,7 @@ async def iniciar_prospeccion_b2b(
     return {"status": "ok", "mensaje": f"Prospección finalizada para '{tipo}' en '{ciudad}'"}
 
 
-@app.post("/api/v1/agencia/b2b/prospectar-agent-reach")
-async def prospectar_agent_reach(
-    request: Request,
-    db: Session = Depends(get_db)
-):
-    """
-    Endpoint dedicado de Agent Reach: búsqueda real de negocios con extracción
-    de teléfonos auténticos desde resultados de búsqueda web en vivo.
-    """
-    from backend.services.agent_reach_service import buscar_negocios_reales_google
-    from backend.services.domain_checker import es_sitio_web_propio
 
-    payload = await request.json()
-    rubro = payload.get("rubro", "Servicios generales")
-    ubicacion = payload.get("ubicacion", "Córdoba, AR")
-
-    # Ejecutar búsqueda real en vivo
-    leads = buscar_negocios_reales_google(rubro=rubro, ciudad=ubicacion, max_results=20)
-
-    nuevos = 0
-    for lead in leads:
-        pid = f"reach_{uuid.uuid4().hex[:8]}"
-        es_propio = es_sitio_web_propio(lead.get("sitio_web"))
-        tel = lead.get("telefono")
-
-        p_data = {
-            "place_id": pid,
-            "nombre": lead["nombre"],
-            "ciudad_busqueda": ubicacion,
-            "tipo_busqueda": rubro,
-            "telefono": tel or "Sin teléfono",
-            "whatsapp": tel if tel else None,
-            "email": None,
-            "sitio_web": lead.get("sitio_web") if es_propio else None,
-            "status": "ENRIQUECIDO" if tel else "SIN_CONTACTAR"
-        }
-        crear_prospecto(db, p_data)
-        nuevos += 1
-
-    return {
-        "status": "ok",
-        "nuevos": nuevos,
-        "mensaje": f"Agent Reach: {nuevos} negocios reales encontrados para '{rubro}' en '{ubicacion}'"
-    }
 
 
 @app.post("/api/v1/agencia/prospectos_b2b/sincronizar-contactos")
@@ -398,69 +368,92 @@ async def generar_demo_prospecto(place_id: str, payload: dict, db: Session = Dep
         resultado_landing = generar_landing_page(nombre_negocio=nombre, rubro=rubro)
         cat_visual = resultado_landing.categoria_visual
         
+        # Enriquecimiento web e integración con el motor de temas visuales
+        from backend.services.landing_theme_engine import obtener_theme_config, obtener_contexto_web_empresa
+        ciudad_prospecto = prospecto.get("ciudad_busqueda") if prospecto else "Rosario, AR"
+        theme = obtener_theme_config(cat_visual)
+        ctx_web = obtener_contexto_web_empresa(nombre, ciudad_prospecto)
+        
         # Crear directorio de demos en frontend si no existe
         demos_dir = os.path.join(frontend_dir, "demos")
         os.makedirs(demos_dir, exist_ok=True)
         
         # Armar link de WhatsApp si cuenta con teléfono
         link_wa = ""
-        if telefono_wa:
+        if telefono_wa and telefono_wa != "Por verificar":
             num_clean = re.sub(r"[^\d]", "", telefono_wa)
             msg_wa = f"Hola {nombre}, preparé una demo comercial exclusiva de su nuevo sitio web ({dominio}): http://localhost:8000/static/demos/{place_id}.html"
             link_wa = f"https://wa.me/{num_clean}?text={msg_wa.replace(' ', '%20')}"
 
-        button_wa_html = f'<a href="{link_wa}" target="_blank" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3.5 px-6 rounded-xl border border-gray-700 transition-all text-sm flex items-center justify-center gap-2"><i class="fa-brands fa-whatsapp text-emerald-400"></i> Consultar por WhatsApp</a>' if link_wa else ''
+        button_wa_html = f'<a href="{link_wa}" target="_blank" class="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white font-bold py-3.5 px-6 rounded-xl border border-emerald-500/30 hover:border-emerald-500 transition-all duration-200 text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/10 hover:shadow-emerald-500/20"><i class="fa-brands fa-whatsapp text-lg"></i> Consultar por WhatsApp</a>' if link_wa else ''
         nav_wa_link = link_wa if link_wa else '#'
 
-        # Generar contenido HTML glassmorphic de alta gama para la demo estática
+        # Formatear características / servicios adaptados al rubro
+        features_html = ""
+        for feat in theme["features"]:
+            features_html += f"""
+            <div class="glass-card p-6 rounded-2xl space-y-4">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-transform duration-300 group-hover:scale-110" style="background: rgba(255,255,255,0.04); color: {theme['accent']}; border: 1px solid {theme['border']};">
+                    <i class="fa-solid {feat['icon']}"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white tracking-tight" style="font-family: {theme['font_display']};">{feat['title']}</h3>
+                <p class="text-sm text-slate-400 leading-relaxed">{feat['desc']}</p>
+            </div>
+            """
+
+        # Generar contenido HTML con Taste DNA y estética personalizada
         filepath = os.path.join(demos_dir, f"{place_id}.html")
         html_demo_content = f"""<!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es" class="dark" style="background-color: {theme['bg']};">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{nombre} — Sitio Oficial & Solución Digital</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="{theme['font_google']}" rel="stylesheet">
     <style>
-        body {{ background-color: #090d16; color: #f3f4f6; font-family: 'Plus Jakarta Sans', sans-serif; }}
-        .glass-card {{ background: rgba(17, 24, 39, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }}
-        .hero-gradient {{ background: radial-gradient(circle at top center, rgba(99, 102, 241, 0.15) 0%, transparent 70%); }}
+        html, body {{ background-color: {theme['bg']}; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; padding: 0; }}
+        .display-font {{ font-family: {theme['font_display']}; }}
+        .glass-card {{ background: {theme['card_bg']}; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid {theme['border']}; box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.08); transition: all 0.25s ease; }}
+        .glass-card:hover {{ border-color: {theme['border_hover']}; transform: translateY(-2px); }}
+        .hero-bg {{ background-color: {theme['bg']}; background-image: radial-gradient(800px circle at 50% -20%, {theme['glow']}, transparent 70%), radial-gradient(circle at 85% 85%, {theme['glow_secondary']}, transparent 50%); }}
+        .glow-btn {{ box-shadow: 0 10px 30px -5px {theme['glow']}; }}
+        .glow-btn:hover {{ box-shadow: 0 15px 35px -5px {theme['glow']}; transform: translateY(-1px); }}
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between hero-gradient">
+<body class="min-h-screen flex flex-col justify-between antialiased hero-bg text-slate-100" style="background-color: {theme['bg']};">
 
     <!-- NAV BAR -->
-    <header class="max-w-6xl mx-auto w-full px-6 py-6 flex justify-between items-center">
+    <header class="max-w-6xl mx-auto w-full px-6 py-6 flex justify-between items-center relative z-10 border-b border-white/5">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/20">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shadow-lg" style="background-color: {theme['accent']}; shadow-color: {theme['glow']};">
                 <i class="fa-solid fa-briefcase"></i>
             </div>
-            <span class="text-lg font-bold text-white tracking-tight">{nombre}</span>
+            <span class="text-lg font-bold text-white tracking-tight display-font">{nombre}</span>
         </div>
-        <div class="flex items-center gap-4">
-            <span class="text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-3 py-1 rounded-full font-mono uppercase font-bold">{cat_visual}</span>
-            <a href="{nav_wa_link}" target="_blank" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-600/20">
-                <i class="fa-brands fa-whatsapp"></i> Contactar
+        <div class="flex items-center gap-3">
+            <span class="text-xs px-3.5 py-1.5 rounded-full font-mono uppercase font-bold tracking-wider" style="background: rgba(255,255,255,0.03); color: {theme['accent']}; border: 1px solid {theme['border']};">{theme['badge']}</span>
+            <a href="{nav_wa_link}" target="_blank" class="text-xs bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white font-bold px-4 py-2 rounded-xl transition-all duration-200 border border-emerald-500/30 hover:border-emerald-500 flex items-center gap-1.5 shadow-sm">
+                <i class="fa-brands fa-whatsapp text-sm"></i> Contactar
             </a>
         </div>
     </header>
 
     <!-- HERO SECTION -->
-    <main class="max-w-6xl mx-auto w-full px-6 py-12 space-y-16">
-        <section class="text-center space-y-6 max-w-3xl mx-auto pt-6">
-            <div class="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs px-4 py-1.5 rounded-full font-medium">
-                <i class="fa-solid fa-sparkles text-amber-400"></i> Calidad & Servicio de Excelencia en {rubro}
+    <main class="max-w-6xl mx-auto w-full px-6 py-16 space-y-20 relative z-10">
+        <section class="text-center space-y-6 max-w-3xl mx-auto pt-4">
+            <div class="inline-flex items-center gap-2 text-xs px-4 py-1.5 rounded-full font-medium shadow-sm" style="background: rgba(255,255,255,0.03); border: 1px solid {theme['border']}; color: {theme['accent']};">
+                <i class="fa-solid fa-sparkles text-amber-400"></i> {theme['badge']} en {ciudad_prospecto}
             </div>
-            <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight tracking-tight">
-                Impulsamos la excelencia de <span class="bg-gradient-to-r from-indigo-400 via-sky-400 to-emerald-400 bg-clip-text text-transparent">{nombre}</span>
+            <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight tracking-tight display-font">
+                Impulsamos la presencia de <span class="bg-gradient-to-r {theme['accent_gradient']} bg-clip-text text-transparent">{nombre}</span>
             </h1>
-            <p class="text-gray-400 text-base md:text-lg leading-relaxed">
-                Brindamos atención personalizada, rapidez y la máxima confiabilidad comercial en el rubro de <strong class="text-gray-200">{rubro}</strong>. Soluciones diseñadas a la medida de tus necesidades.
+            <p class="text-slate-300 text-base md:text-lg leading-relaxed max-w-2xl mx-auto">
+                {ctx_web['resumen_web']}
             </p>
             <div class="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-                <a href="https://checkout.dlocalgo.com/v1/pay/demo-{precio}-usd" target="_blank" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 px-8 rounded-xl shadow-xl shadow-indigo-600/25 transition-all text-sm flex items-center justify-center gap-2">
+                <a href="https://checkout.dlocalgo.com/v1/pay/demo-{precio}-usd" target="_blank" class="text-white font-bold py-3.5 px-8 rounded-xl transition-all duration-200 text-sm flex items-center justify-center gap-2 glow-btn" style="background-color: {theme['accent']};">
                     <i class="fa-solid fa-lock"></i> Adquirir Dominio {dominio} (${precio} USD)
                 </a>
                 {button_wa_html}
@@ -469,46 +462,26 @@ async def generar_demo_prospecto(place_id: str, payload: dict, db: Session = Dep
 
         <!-- FEATURES / SERVICIOS GRID -->
         <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="glass-card p-6 rounded-2xl space-y-3">
-                <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xl">
-                    <i class="fa-solid fa-shield-halved"></i>
-                </div>
-                <h3 class="text-lg font-bold text-white">Garantía & Confianza</h3>
-                <p class="text-sm text-gray-400 leading-relaxed">Procesos respaldados por estándares internacionales de calidad y cumplimiento asegurado.</p>
-            </div>
-            <div class="glass-card p-6 rounded-2xl space-y-3">
-                <div class="w-12 h-12 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center text-xl">
-                    <i class="fa-solid fa-bolt"></i>
-                </div>
-                <h3 class="text-lg font-bold text-white">Respuesta Inmediata</h3>
-                <p class="text-sm text-gray-400 leading-relaxed">Atención ágil y canales directos para asesorarte sin esperas en todo momento.</p>
-            </div>
-            <div class="glass-card p-6 rounded-2xl space-y-3">
-                <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl">
-                    <i class="fa-solid fa-star"></i>
-                </div>
-                <h3 class="text-lg font-bold text-white">Atención Personalizada</h3>
-                <p class="text-sm text-gray-400 leading-relaxed">Soluciones a la medida de tu presupuesto con foco en la satisfacción completa.</p>
-            </div>
+            {features_html}
         </section>
 
         <!-- BANNER DE CONVERSIÓN COMERCIAL -->
-        <section class="glass-card p-8 rounded-3xl border border-indigo-500/20 text-center space-y-4 relative overflow-hidden">
-            <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-indigo-600/10 rounded-full blur-2xl"></div>
-            <h2 class="text-2xl font-bold text-white">¿Listo para potenciar la presencia de {nombre}?</h2>
-            <p class="text-sm text-gray-400 max-w-xl mx-auto">Reserva la propiedad intelectual del dominio oficial <strong class="text-indigo-300 font-mono">{dominio}</strong> y activa la plataforma comercial hoy mismo.</p>
-            <div class="pt-2">
-                <a href="https://checkout.dlocalgo.com/v1/pay/demo-{precio}-usd" target="_blank" class="inline-flex bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-emerald-600/20 transition-all text-sm items-center gap-2">
-                    <i class="fa-solid fa-cart-shopping"></i> Confirmar Propuesta (${precio} USD)
+        <section class="glass-card p-8 md:p-10 rounded-3xl text-center space-y-4 relative overflow-hidden">
+            <div class="absolute -top-24 -right-24 w-60 h-60 rounded-full blur-3xl opacity-20 pointer-events-none" style="background-color: {theme['accent']};"></div>
+            <h2 class="text-2xl md:text-3xl font-bold text-white tracking-tight display-font">¿Listo para activar la plataforma digital de {nombre}?</h2>
+            <p class="text-sm md:text-base text-slate-400 max-w-xl mx-auto leading-relaxed">Asegura la propiedad exclusiva del dominio <strong class="font-mono text-white px-1.5 py-0.5 rounded bg-white/5 border border-white/10">{dominio}</strong> y pon en marcha tu presencia comercial oficial hoy mismo.</p>
+            <div class="pt-4">
+                <a href="https://checkout.dlocalgo.com/v1/pay/demo-{precio}-usd" target="_blank" class="inline-flex text-white font-bold py-3.5 px-8 rounded-xl transition-all duration-200 text-sm items-center gap-2 glow-btn" style="background-color: {theme['accent']};">
+                    <i class="fa-solid fa-cart-shopping"></i> {theme['cta_text']} (${precio} USD)
                 </a>
             </div>
         </section>
     </main>
 
     <!-- FOOTER -->
-    <footer class="max-w-6xl mx-auto w-full px-6 py-8 border-t border-gray-800/80 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500 gap-4">
+    <footer class="max-w-6xl mx-auto w-full px-6 py-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 gap-4 relative z-10">
         <p>© 2026 {nombre}. Todos los derechos reservados.</p>
-        <p class="font-mono text-gray-600">Demo Comercial Generada por Emayon Forge — Nicho Landing Factory</p>
+        <p class="font-mono text-slate-500">Demo Comercial Generada por Emayon Forge — Nicho Landing Factory</p>
     </footer>
 
 </body>

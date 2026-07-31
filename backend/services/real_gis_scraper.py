@@ -25,8 +25,10 @@ def obtener_filtro_osm_estricto(rubro: str):
     Retorna el filtro de categoría OpenStreetMap estricto para evitar mezclar rubros irrelevantes.
     """
     r = rubro.lower().strip()
-    if any(w in r for w in ["metalurgica", "herreria", "aluminio", "herramientas"]):
-        return '["craft"~"metal_construction|blacksmith|welder"]["shop"="hardware"]'
+    if any(w in r for w in ["panaderia", "panificacion", "pan", "bakery", "facturas"]):
+        return '["shop"="bakery"]'
+    elif any(w in r for w in ["metalurgica", "herreria", "aluminio", "herramientas"]):
+        return '["craft"~"metal_construction|blacksmith|welder"]'
     elif any(w in r for w in ["cafe", "cafeteria", "bar", "resto", "restaurante", "gourmet"]):
         return '["amenity"~"cafe|restaurant|bar"]'
     elif any(w in r for w in ["taller", "mecanico", "mecanica", "lubricentro", "repuestos"]):
@@ -36,7 +38,7 @@ def obtener_filtro_osm_estricto(rubro: str):
     elif any(w in r for w in ["peluqueria", "barberia", "estetica"]):
         return '["shop"~"hairdresser|beauty"]'
     else:
-        return '["shop"]'
+        return f'["shop"="{r}"]'
 
 def extraer_leads_reales_geolocalizados(tipo: str, ciudad: str, max_results: int = 50):
     """
@@ -45,24 +47,38 @@ def extraer_leads_reales_geolocalizados(tipo: str, ciudad: str, max_results: int
     lat, lon = obtener_coordenadas_ciudad(ciudad)
     tag_filter = obtener_filtro_osm_estricto(tipo)
 
-    overpass_url = "https://overpass-api.de/api/interpreter"
+    overpass_endpoints = [
+        "https://overpass-api.de/api/interpreter",
+        "https://overpass.kumi.systems/api/interpreter",
+        "https://overpass.private.coffee/api/interpreter"
+    ]
     overpass_query = f"""
-    [out:json][timeout:15];
-    node(around:8000,{lat},{lon}){tag_filter}["name"];
+    [out:json][timeout:25];
+    node(around:12000,{lat},{lon}){tag_filter}["name"];
     out body 50;
     """
 
     leads = []
     seen_names = set()
 
-    try:
-        req = urllib.request.Request(
-            overpass_url,
-            data=overpass_query.encode("utf-8"),
-            headers={"User-Agent": "EmayonForgeCRM/1.0"}
-        )
-        with urllib.request.urlopen(req, timeout=12) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
+    data = None
+    for endpoint in overpass_endpoints:
+        try:
+            req = urllib.request.Request(
+                endpoint,
+                data=overpass_query.encode("utf-8"),
+                headers={"User-Agent": "EmayonForgeCRM/1.0"}
+            )
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                if data and "elements" in data:
+                    break
+        except Exception as ep_err:
+            print(f"Warn Overpass endpoint {endpoint}: {ep_err}")
+            continue
+
+    if data:
+        try:
             elements = data.get("elements", [])
 
             for el in elements:
@@ -98,7 +114,8 @@ def extraer_leads_reales_geolocalizados(tipo: str, ciudad: str, max_results: int
 
                     if len(leads) >= max_results:
                         break
-    except Exception as e:
-        print(f"Error en Overpass GIS: {e}")
+        except Exception as e:
+            print(f"Error en Overpass GIS: {e}")
 
     return leads
+

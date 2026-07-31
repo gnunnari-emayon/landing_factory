@@ -33,8 +33,8 @@ def enriquecer_telefono_google_maps(nombre: str, ciudad: str):
                     if clean_num.startswith("0"):
                         return "+549" + clean_num[1:]
                     return "+54" + clean_num
-    except Exception as err:
-        print(f"Error DDG enriqueciendo teléfono para '{nombre}': {err}")
+    except Exception:
+        pass
 
     # 2. Fallback: Google Search
     try:

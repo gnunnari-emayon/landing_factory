@@ -492,12 +492,12 @@
                                                         <div 
                                                             key={idx}
                                                             onClick={() => {
-                                                                setSearchCity(`${u.ciudad}, ${u.provincia}`);
+                                                                setSearchCity(u.formato || `${u.ciudad}, ${u.provincia}, ${u.pais}`);
                                                                 setSugerenciasUbicacion([]);
                                                             }}
                                                             className="px-4 py-2.5 text-xs text-gray-200 hover:bg-pink-600 hover:text-white cursor-pointer transition-colors border-b border-gray-800/80 flex items-center justify-between">
-                                                            <span><i className="fa-solid fa-location-dot text-pink-400 mr-2"></i>{u.ciudad}, {u.provincia}</span>
-                                                            <span className="text-[10px] text-gray-400 font-mono bg-gray-800 px-2 py-0.5 rounded">{u.pais}</span>
+                                                            <span><i className="fa-solid fa-location-dot text-pink-400 mr-2"></i>{u.formato || `${u.ciudad}, ${u.provincia}, ${u.pais}`}</span>
+                                                            <span className="text-[10px] text-pink-300 font-mono bg-pink-950/60 border border-pink-500/30 px-2 py-0.5 rounded">{u.pais}</span>
                                                         </div>
                                                     ))}
                                                 </div>
