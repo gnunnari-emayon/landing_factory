@@ -3,7 +3,10 @@ import json
 import re
 import urllib.request
 import urllib.parse
-from bs4 import BeautifulSoup
+try:
+    from bs4 import BeautifulSoup
+except ImportError:
+    BeautifulSoup = None
 
 def extraer_leads_reales_duckduckgo(tipo: str, ciudad: str, max_results: int = 50):
     """
@@ -73,12 +76,23 @@ def extraer_leads_reales_duckduckgo(tipo: str, ciudad: str, max_results: int = 5
             s_req = urllib.request.Request(suggest_url, headers=headers)
             with urllib.request.urlopen(s_req, timeout=5) as s_resp:
                 s_data = json.loads(s_resp.read().decode("utf-8"))
-                for item in s_data:
-                    phrase = item.get("phrase", "") if isinstance(item, dict) else str(item)
-                    if phrase and phrase.lower() not in seen_names:
-                        seen_names.add(phrase.lower())
+                phrases = []
+                if isinstance(s_data, list):
+                    for elem in s_data:
+                        if isinstance(elem, str):
+                            phrases.append(elem)
+                        elif isinstance(elem, list):
+                            phrases.extend([x for x in elem if isinstance(x, str)])
+                        elif isinstance(elem, dict) and "phrase" in elem:
+                            phrases.append(elem["phrase"])
+                for phrase in phrases:
+                    phrase_clean = phrase.title().split("-")[0].strip()
+                    if phrase_clean.startswith("[") or any(bad in phrase_clean.lower() for bad in ["cerca de mi", "precio", "domicilio", "que es", "como"]):
+                        continue
+                    if phrase_clean and phrase_clean.lower() not in seen_names:
+                        seen_names.add(phrase_clean.lower())
                         leads.append({
-                            "nombre": phrase.title(),
+                            "nombre": phrase_clean,
                             "tipo_busqueda": tipo,
                             "ciudad_busqueda": ciudad,
                             "sitio_web": None,

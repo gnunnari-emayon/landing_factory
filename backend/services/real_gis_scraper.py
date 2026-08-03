@@ -22,23 +22,41 @@ def obtener_coordenadas_ciudad(ciudad: str):
 
 def obtener_filtro_osm_estricto(rubro: str):
     """
-    Retorna el filtro de categoría OpenStreetMap estricto para evitar mezclar rubros irrelevantes.
+    Retorna el filtro de categoría OpenStreetMap semántico para evitar mezclar rubros irrelevantes.
     """
     r = rubro.lower().strip()
     if any(w in r for w in ["panaderia", "panificacion", "pan", "bakery", "facturas"]):
         return '["shop"="bakery"]'
     elif any(w in r for w in ["metalurgica", "herreria", "aluminio", "herramientas"]):
         return '["craft"~"metal_construction|blacksmith|welder"]'
-    elif any(w in r for w in ["cafe", "cafeteria", "bar", "resto", "restaurante", "gourmet"]):
-        return '["amenity"~"cafe|restaurant|bar"]'
-    elif any(w in r for w in ["taller", "mecanico", "mecanica", "lubricentro", "repuestos"]):
-        return '["shop"="car_repair"]'
-    elif any(w in r for w in ["odontologo", "dentista", "salud dental"]):
-        return '["amenity"="dentist"]'
-    elif any(w in r for w in ["peluqueria", "barberia", "estetica"]):
+    elif any(w in r for w in ["cafe", "cafeteria", "bar", "resto", "restaurante", "gourmet", "gastronomia"]):
+        return '["amenity"~"cafe|restaurant|bar|fast_food"]'
+    elif any(w in r for w in ["taller", "mecanico", "mecanica", "lubricentro", "repuestos", "auto"]):
+        return '["shop"~"car_repair|car_parts"]'
+    elif any(w in r for w in ["odontologo", "dentista", "salud"]):
+        return '["amenity"~"dentist|clinic|doctors"]'
+    elif any(w in r for w in ["peluqueria", "barberia", "estetica", "belleza"]):
         return '["shop"~"hairdresser|beauty"]'
+    elif any(w in r for w in ["abogado", "estudio juridico"]):
+        return '["office"="lawyer"]'
+    elif any(w in r for w in ["contador", "contable"]):
+        return '["office"="accountant"]'
+    elif any(w in r for w in ["inmobiliaria", "propiedades"]):
+        return '["office"="estate_agent"]'
+    elif any(w in r for w in ["constructora", "construccion", "arquitectura"]):
+        return '["office"~"company|architect"]'
+    elif any(w in r for w in ["fletes", "logistica", "transporte"]):
+        return '["office"~"logistics|company|transport"]'
+    elif any(w in r for w in ["supermercado", "almacen", "despensa"]):
+        return '["shop"~"supermarket|convenience"]'
+    elif any(w in r for w in ["ropa", "indumentaria", "boutique", "moda"]):
+        return '["shop"="clothes"]'
+    elif any(w in r for w in ["gimnasio", "fitness", "gym"]):
+        return '["leisure"="fitness_centre"]'
+    elif any(w in r for w in ["veterinaria", "mascotas"]):
+        return '["amenity"="veterinary"]'
     else:
-        return f'["shop"="{r}"]'
+        return '["shop"]'
 
 def extraer_leads_reales_geolocalizados(tipo: str, ciudad: str, max_results: int = 50):
     """
@@ -48,15 +66,14 @@ def extraer_leads_reales_geolocalizados(tipo: str, ciudad: str, max_results: int
     tag_filter = obtener_filtro_osm_estricto(tipo)
 
     overpass_endpoints = [
+        "https://overpass-api.de/api/interpreter",
         "https://overpass.kumi.systems/api/interpreter",
-        "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-        "https://overpass.private.coffee/api/interpreter",
-        "https://overpass-api.de/api/interpreter"
+        "https://overpass.private.coffee/api/interpreter"
     ]
     overpass_query = f"""
-    [out:json][timeout:10];
-    node(around:8000,{lat},{lon}){tag_filter}["name"];
-    out body 40;
+    [out:json][timeout:8];
+    nwr(around:15000,{lat},{lon}){tag_filter}["name"];
+    out body 50;
     """
 
     leads = []

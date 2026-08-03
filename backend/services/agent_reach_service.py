@@ -1,6 +1,8 @@
+from __future__ import annotations
 import urllib.request
 import urllib.parse
 import json
+import re
 
 def obtener_coordenadas(ciudad: str):
     """Obtiene lat/lon reales de la ciudad usando Nominatim Geocoding API."""
@@ -71,42 +73,55 @@ def buscar_negocios_agent_reach_api(rubro: str, ciudad: str, max_results: int = 
         req = urllib.request.Request(ddg_url, headers=headers)
         with urllib.request.urlopen(req, timeout=6) as resp:
             html = resp.read().decode("utf-8", errors="ignore")
-            import re
-            raw_titles = re.findall(r'<a[^>]*class="[^"]*result__a[^"]*"[^>]*>(.*?)</a>', html, re.DOTALL)
-            if not raw_titles:
-                raw_titles = re.findall(r'<a[^>]*class="[^"]*result__url[^"]*"[^>]*>\s*(.*?)\s*</a>', html, re.DOTALL)
-            if not raw_titles:
-                raw_titles = re.findall(r'class="result__title"[^>]*>.*?<a[^>]*>(.*?)</a>', html, re.DOTALL)
+            from bs4 import BeautifulSoup
+            soup = BeautifulSoup(html, "html.parser")
+            results = soup.select(".result")
 
-            for item in raw_titles:
-                raw_name = item[1] if isinstance(item, tuple) else item
-                clean_name = re.sub(r'<[^>]+>', '', raw_name).strip()
+            for r in results:
+                title_node = r.select_one(".result__title a") or r.select_one(".result__a") or r.select_one("a")
+                snippet_node = r.select_one(".result__snippet")
+                url_node = r.select_one(".result__url")
+
+                if not title_node:
+                    continue
+
+                raw_title = title_node.get_text(strip=True)
+                raw_url = title_node.get("href") or (url_node.get_text(strip=True) if url_node else None)
+
+                # Desempaquetar URL redirigida por DDG si aplica
+                if raw_url and "uddg=" in raw_url:
+                    try:
+                        parsed_qs = urllib.parse.parse_qs(urllib.parse.urlparse(raw_url).query)
+                        if "uddg" in parsed_qs:
+                            raw_url = parsed_qs["uddg"][0]
+                    except Exception:
+                        pass
+
+                clean_name = re.sub(r'<[^>]+>', '', raw_title).strip()
                 clean_name = clean_name.split("-")[0].split("|")[0].split(":")[0].strip()
 
                 if clean_name.startswith("www.") or clean_name.startswith("http") or any(bad in clean_name.lower() for bad in ["duckduckgo", "buscar", "resultados", "wikipedia", "top 10", "mejores", "guía"]):
                     continue
 
-                if len(clean_name) >= 4 and len(clean_name) <= 60 and clean_name.lower() not in seen_names:
+                if len(clean_name) >= 3 and len(clean_name) <= 70 and clean_name.lower() not in seen_names:
                     # Descartar palabras clave típicas de España
                     if any(spain_word in clean_name.lower() for spain_word in ["gastrotaberna", "madrid", "barcelona", "sevilla", "valencia", "andalucia"]):
                         continue
 
                     seen_names.add(clean_name.lower())
 
-                    from backend.services.phone_enricher import enriquecer_telefono_google_maps
-                    telefono = enriquecer_telefono_google_maps(clean_name, ubicacion_query)
-
-                    # Si el teléfono extraído es de España (+34), descartar
-                    if telefono and telefono.startswith("+34"):
-                        telefono = None
-
-                    site_url = item[0] if isinstance(item, tuple) and "duckduckgo" not in item[0] else None
+                    snippet_text = snippet_node.get_text(strip=True) if snippet_node else ""
+                    telefono = None
+                    tel_match = re.search(r'(?:tel|cel|wa|contacto|whatsapp|llamada)?[:\s]*(\+?54[\s-]?9?[\s-]?)?(0?\d{2,4}[\s-]?\d{3,4}[\s-]?\d{4})', snippet_text, re.IGNORECASE)
+                    if tel_match:
+                        from backend.services.phone_enricher import validar_y_formatear_telefono_ar
+                        telefono = validar_y_formatear_telefono_ar(tel_match.group(2), ciudad)
 
                     leads.append({
                         "nombre": clean_name,
                         "tipo_busqueda": rubro,
                         "ciudad_busqueda": ciudad,
-                        "sitio_web": site_url,
+                        "sitio_web": raw_url,
                         "telefono": telefono
                     })
 
@@ -114,6 +129,40 @@ def buscar_negocios_agent_reach_api(rubro: str, ciudad: str, max_results: int = 
                         break
     except Exception as e:
         print(f"Error Agent Reach Direct Scraper Engine: {e}")
+
+    # Fallback Autocomplete si DDG bloquea la ip o entrega 0 resultados
+    if len(leads) < 5:
+        try:
+            suggest_url = f"https://duckduckgo.com/ac/?q={urllib.parse.quote(f'{rubro} {ubicacion_query}')}&type=list"
+            s_req = urllib.request.Request(suggest_url, headers=headers)
+            with urllib.request.urlopen(s_req, timeout=5) as s_resp:
+                s_data = json.loads(s_resp.read().decode("utf-8"))
+                phrases = []
+                if isinstance(s_data, list):
+                    for elem in s_data:
+                        if isinstance(elem, str):
+                            phrases.append(elem)
+                        elif isinstance(elem, list):
+                            phrases.extend([x for x in elem if isinstance(x, str)])
+                        elif isinstance(elem, dict) and "phrase" in elem:
+                            phrases.append(elem["phrase"])
+                for phrase in phrases:
+                    phrase_clean = phrase.title().split("-")[0].strip()
+                    if phrase_clean.startswith("[") or any(bad in phrase_clean.lower() for bad in ["cerca de mi", "precio", "domicilio", "que es", "como"]):
+                        continue
+                    if phrase_clean and len(phrase_clean) > 3 and phrase_clean.lower() not in seen_names:
+                        seen_names.add(phrase_clean.lower())
+                        leads.append({
+                            "nombre": phrase_clean,
+                            "tipo_busqueda": rubro,
+                            "ciudad_busqueda": ciudad,
+                            "sitio_web": None,
+                            "telefono": None
+                        })
+                        if len(leads) >= max_results:
+                            break
+        except Exception as e:
+            print(f"Error en API Autocomplete fallback: {e}")
 
     return leads
 
@@ -162,17 +211,19 @@ def validar_empresa_en_google_maps(nombre: str, ciudad: str):
     return False
 
 
-def ejecutar_prospeccion_agent_reach(rubro: str, ciudad: str, max_results: int = 20, solo_sin_web: bool = True):
+def ejecutar_prospeccion_agent_reach(rubro: str, ciudad: str, max_results: int = 50, solo_sin_web: bool = True, solo_con_telefono: bool = True):
     """
     Punto de entrada POKA-YOKE para Agent Reach B2B.
     Mapea y filtra de forma determinista empresas que:
     1) Tengan existencia empírica comprobable en Google Maps / OSM GIS.
-    2) Si solo_sin_web=True, garantiza que NO posean sitio web institucional propio (.com, .com.ar, etc.), ideal para venta de landings.
+    2) Tengan número de teléfono válido y disponible (si solo_con_telefono=True).
+    3) Si solo_sin_web=True, garantiza que NO posean sitio web institucional propio (.com, .com.ar, etc.), ideal para venta de landings.
     """
     from backend.services.domain_checker import es_sitio_web_propio
 
+    max_results = min(max_results, 50)
     # 1. Candidatos capturados via búsqueda web / redes / directorios
-    candidatos = buscar_negocios_agent_reach_api(rubro=rubro, ciudad=ciudad, max_results=max_results * 3)
+    candidatos = buscar_negocios_agent_reach_api(rubro=rubro, ciudad=ciudad, max_results=max_results * 4)
 
     leads_validados = []
     seen_names = set()
@@ -180,20 +231,18 @@ def ejecutar_prospeccion_agent_reach(rubro: str, ciudad: str, max_results: int =
     for cand in candidatos:
         nombre = cand["nombre"]
         sitio = cand.get("sitio_web")
+        tel = cand.get("telefono")
 
         if nombre.lower() in seen_names:
+            continue
+
+        # Filtro estricto: requerir número de teléfono disponible
+        if solo_con_telefono and (not tel or tel == "Por verificar"):
             continue
 
         # Filtro Poka-Yoke: si se solicitan prospectos de venta sin web, descartar los que ya tienen sitio propio
         if solo_sin_web and es_sitio_web_propio(sitio):
             continue
-
-        # Re-enriquecimiento Poka-Yoke: Si el candidato no trajo teléfono en el primer pase, forzar búsqueda dedicada multicanal
-        if not cand.get("telefono") or cand.get("telefono") == "Por verificar":
-            from backend.services.phone_enricher import enriquecer_telefono_google_maps
-            tel_reintentado = enriquecer_telefono_google_maps(nombre, ciudad)
-            if tel_reintentado:
-                cand["telefono"] = tel_reintentado
 
         seen_names.add(nombre.lower())
         leads_validados.append(cand)
@@ -203,18 +252,17 @@ def ejecutar_prospeccion_agent_reach(rubro: str, ciudad: str, max_results: int =
 
     # 2. Si se requieren más prospectos reales garantizados en Google Maps / Overpass GIS
     if len(leads_validados) < max_results:
-        osm_leads = extraer_leads_reales_overpass(rubro=rubro, ciudad=ciudad, max_results=max_results)
+        osm_leads = extraer_leads_reales_overpass(rubro=rubro, ciudad=ciudad, max_results=max_results * 2)
         for lead in osm_leads:
             if lead["nombre"].lower() not in seen_names:
                 sitio = lead.get("sitio_web")
-                if solo_sin_web and es_sitio_web_propio(sitio):
+                tel = lead.get("telefono")
+
+                if solo_con_telefono and (not tel or tel == "Por verificar"):
                     continue
 
-                if not lead.get("telefono") or lead.get("telefono") == "Por verificar":
-                    from backend.services.phone_enricher import enriquecer_telefono_google_maps
-                    tel_osm = enriquecer_telefono_google_maps(lead["nombre"], ciudad)
-                    if tel_osm:
-                        lead["telefono"] = tel_osm
+                if solo_sin_web and es_sitio_web_propio(sitio):
+                    continue
 
                 seen_names.add(lead["nombre"].lower())
                 leads_validados.append(lead)

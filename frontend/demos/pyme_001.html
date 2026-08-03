@@ -1,98 +1,498 @@
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es" class="dark scroll-smooth" style="background-color: #090d12;">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contenedores & Volquetes Córdoba S.A. — Sitio Oficial & Solución Digital</title>
+    <title>Contenedores & Volquetes Córdoba S.A. — Sitio Oficial Público & Vista Previa</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #090d16; color: #f3f4f6; font-family: 'Plus Jakarta Sans', sans-serif; }
-        .glass-card { background: rgba(17, 24, 39, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .hero-gradient { background: radial-gradient(circle at top center, rgba(99, 102, 241, 0.15) 0%, transparent 70%); }
+        html, body { background-color: #090d12; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; padding: 0; scroll-behavior: smooth; }
+        .display-font { font-family: 'Space Grotesk', sans-serif; }
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(16, 185, 129, 0.15); box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.08); transition: all 0.25s ease; }
+        .glass-card:hover { border-color: rgba(16, 185, 129, 0.35); transform: translateY(-2px); }
+        .hero-bg { background-color: #090d12; background-image: radial-gradient(800px circle at 50% -20%, rgba(16, 185, 129, 0.12), transparent 70%), radial-gradient(circle at 85% 85%, rgba(6, 182, 212, 0.06), transparent 50%); }
+        .glow-btn { box-shadow: 0 10px 30px -5px rgba(16, 185, 129, 0.12); }
+        .glow-btn:hover { box-shadow: 0 15px 35px -5px rgba(16, 185, 129, 0.12); transform: translateY(-1px); }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between hero-gradient">
+<body class="min-h-screen flex flex-col justify-between antialiased hero-bg text-slate-100" style="background-color: #090d12;">
 
-    <!-- NAV BAR -->
-    <header class="max-w-6xl mx-auto w-full px-6 py-6 flex justify-between items-center">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/20">
-                <i class="fa-solid fa-briefcase"></i>
-            </div>
-            <span class="text-lg font-bold text-white tracking-tight">Contenedores & Volquetes Córdoba S.A.</span>
+    <!-- EMAYOON FORGE COMMERCIAL B2B DOCK (SUPERIOR) -->
+    <div class="bg-slate-950/95 border-b border-amber-500/30 px-6 py-2.5 flex flex-wrap justify-between items-center text-xs backdrop-blur-xl z-50 sticky top-0">
+        <div class="flex items-center gap-2 font-medium">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+            <span class="text-slate-300">Propuesta Comercial B2B por <a href="https://emayonforge.com/" target="_blank" class="text-amber-400 font-bold hover:underline">Emayon Forge</a> para <strong class="text-white">Contenedores & Volquetes Córdoba S.A.</strong></span>
         </div>
-        <div class="flex items-center gap-4">
-            <span class="text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-3 py-1 rounded-full font-mono uppercase font-bold">logistica</span>
-            <a href="https://wa.me/543514559012?text=Hola%20Contenedores%20&%20Volquetes%20Córdoba%20S.A.,%20preparé%20una%20demo%20comercial%20exclusiva%20de%20su%20nuevo%20sitio%20web%20(contenedoresvolquetescórdobasa.com):%20http://localhost:8000/static/demos/pyme_001.html" target="_blank" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-600/20">
-                <i class="fa-brands fa-whatsapp"></i> Contactar
+        <div class="flex items-center gap-3">
+            <a href="#enterprise" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 shadow-md">
+                <i class="fa-solid fa-arrow-down text-xs"></i> Ver Módulos Enterprise
             </a>
+            <a href="https://emayonforge.com/" target="_blank" class="text-slate-400 hover:text-white transition-colors flex items-center gap-1 text-[11px]">
+                emayonforge.com <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- STICKY NAVBAR PÚBLICO DEL CLIENTE -->
+    <header class="sticky top-[41px] z-40 backdrop-blur-xl border-b border-white/5 bg-slate-950/80">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#hero" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shadow-lg transition-transform group-hover:scale-105" style="background-color: #10b981;">
+                    <i class="fa-solid fa-briefcase"></i>
+                </div>
+                <span class="text-lg font-bold text-white tracking-tight display-font">Contenedores & Volquetes Córdoba S.A.</span>
+            </a>
+
+            <!-- NAV LINKS PÚBLICOS -->
+            <nav class="hidden md:flex items-center gap-6 text-xs font-medium text-slate-300">
+                <a href="#hero" class="hover:text-white transition-colors">Inicio</a>
+                <a href="#servicios" class="hover:text-white transition-colors">Servicios</a>
+                <a href="#noticias" class="hover:text-white transition-colors">Novedades</a>
+                
+                <a href="#contacto" class="hover:text-white transition-colors">Ubicación</a>
+            </nav>
+
+            <div class="flex items-center gap-3">
+                <a href="https://wa.me/543514559012?text=Hola%20Contenedores%20&%20Volquetes%20Córdoba%20S.A.,%20preparé%20una%20demo%20comercial%20exclusiva%20de%20su%20nuevo%20sitio%20web%20(miempresa.com):%20http://localhost:8000/static/demos/pyme_001.html" target="_blank" class="text-xs bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white font-bold px-4.5 py-2.5 rounded-xl transition-all duration-200 border border-emerald-500/30 hover:border-emerald-500 flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-brands fa-whatsapp text-sm"></i> Contactar
+                </a>
+            </div>
         </div>
     </header>
 
-    <!-- HERO SECTION -->
-    <main class="max-w-6xl mx-auto w-full px-6 py-12 space-y-16">
-        <section class="text-center space-y-6 max-w-3xl mx-auto pt-6">
-            <div class="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs px-4 py-1.5 rounded-full font-medium">
-                <i class="fa-solid fa-sparkles text-amber-400"></i> Calidad & Servicio de Excelencia en Logística & Contenedores
+    <!-- 1. PARTE PÚBLICA: LANDING PAGE DEL CLIENTE -->
+    <main class="max-w-7xl mx-auto w-full px-6 py-16 space-y-24 relative z-10" id="hero">
+        <section class="text-center space-y-6 max-w-4xl mx-auto pt-4">
+            <div class="inline-flex flex-wrap justify-center items-center gap-3 text-xs px-4 py-2 rounded-full font-medium shadow-sm" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(16, 185, 129, 0.15); color: #10b981;">
+                <span class="flex items-center gap-1.5 text-emerald-400 font-bold"><i class="fa-solid fa-circle text-[8px]"></i> Atendiendo en Córdoba, AR</span>
+                <span class="text-slate-600">•</span>
+                <span><i class="fa-solid fa-star text-amber-400"></i> 4.9 (Google Reviews)</span>
+                <span class="text-slate-600">•</span>
+                <span>Logística & Transporte Express</span>
             </div>
-            <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight tracking-tight">
-                Impulsamos la excelencia de <span class="bg-gradient-to-r from-indigo-400 via-sky-400 to-emerald-400 bg-clip-text text-transparent">Contenedores & Volquetes Córdoba S.A.</span>
+            <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight tracking-tight display-font">
+                Impulsamos la presencia digital de <span class="bg-gradient-to-r from-emerald-300 via-teal-400 to-cyan-400 bg-clip-text text-transparent">Contenedores & Volquetes Córdoba S.A.</span>
             </h1>
-            <p class="text-gray-400 text-base md:text-lg leading-relaxed">
-                Brindamos atención personalizada, rapidez y la máxima confiabilidad comercial en el rubro de <strong class="text-gray-200">Logística & Contenedores</strong>. Soluciones diseñadas a la medida de tus necesidades.
+            <p class="text-slate-300 text-base md:text-lg leading-relaxed max-w-3xl mx-auto">
+                Empresa referente en Córdoba, enfocada en brindar atención de excelencia y soluciones a medida.
             </p>
             <div class="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-                <a href="https://checkout.dlocalgo.com/v1/pay/demo-350-usd" target="_blank" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 px-8 rounded-xl shadow-xl shadow-indigo-600/25 transition-all text-sm flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-lock"></i> Adquirir Dominio contenedoresvolquetescórdobasa.com ($350 USD)
+                <a href="#contacto" class="text-white font-bold py-4 px-8 rounded-xl transition-all duration-200 text-sm flex items-center justify-center gap-2 glow-btn" style="background-color: #10b981;">
+                    <i class="fa-solid fa-calendar-check"></i> Consultar Ahora
                 </a>
-                <a href="https://wa.me/543514559012?text=Hola%20Contenedores%20&%20Volquetes%20Córdoba%20S.A.,%20preparé%20una%20demo%20comercial%20exclusiva%20de%20su%20nuevo%20sitio%20web%20(contenedoresvolquetescórdobasa.com):%20http://localhost:8000/static/demos/pyme_001.html" target="_blank" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3.5 px-6 rounded-xl border border-gray-700 transition-all text-sm flex items-center justify-center gap-2"><i class="fa-brands fa-whatsapp text-emerald-400"></i> Consultar por WhatsApp</a>
+                <a href="https://wa.me/543514559012?text=Hola%20Contenedores%20&%20Volquetes%20Córdoba%20S.A.,%20preparé%20una%20demo%20comercial%20exclusiva%20de%20su%20nuevo%20sitio%20web%20(miempresa.com):%20http://localhost:8000/static/demos/pyme_001.html" target="_blank" class="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white font-bold py-3.5 px-6 rounded-xl border border-emerald-500/30 hover:border-emerald-500 transition-all duration-200 text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/10 hover:shadow-emerald-500/20"><i class="fa-brands fa-whatsapp text-lg"></i> Consultar por WhatsApp</a>
             </div>
         </section>
 
-        <!-- FEATURES / SERVICIOS GRID -->
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="glass-card p-6 rounded-2xl space-y-3">
-                <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xl">
-                    <i class="fa-solid fa-shield-halved"></i>
-                </div>
-                <h3 class="text-lg font-bold text-white">Garantía & Confianza</h3>
-                <p class="text-sm text-gray-400 leading-relaxed">Procesos respaldados por estándares internacionales de calidad y cumplimiento asegurado.</p>
+        <!-- SECCIÓN 1: SERVICIOS & ESPECIALIDADES DEL CLIENTE -->
+        <section id="servicios" class="space-y-8">
+            <div class="text-center space-y-2">
+                <span class="text-xs font-bold uppercase font-mono tracking-widest text-slate-400">Oferta Comercial</span>
+                <h2 class="text-3xl font-extrabold text-white tracking-tight display-font">Servicios & Especialidades Destacadas</h2>
+                <p class="text-sm text-slate-400 max-w-xl mx-auto">Soluciones profesionales diseñadas a la medida para garantizar el máximo valor a nuestros clientes.</p>
             </div>
-            <div class="glass-card p-6 rounded-2xl space-y-3">
-                <div class="w-12 h-12 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center text-xl">
-                    <i class="fa-solid fa-bolt"></i>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+            <div class="glass-card p-6 rounded-2xl space-y-4 group">
+                <div class="flex justify-between items-center">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-transform duration-300 group-hover:scale-110" style="background: rgba(255,255,255,0.04); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.15);">
+                        <i class="fa-solid fa-truck-ramp-box"></i>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style="background: rgba(255,255,255,0.03); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.15);">Transporte</span>
                 </div>
-                <h3 class="text-lg font-bold text-white">Respuesta Inmediata</h3>
-                <p class="text-sm text-gray-400 leading-relaxed">Atención ágil y canales directos para asesorarte sin esperas en todo momento.</p>
+                <h3 class="text-xl font-bold text-white tracking-tight display-font">Fletes & Mudanzas Urbanas</h3>
+                <p class="text-sm text-slate-400 leading-relaxed">Traslado seguro de cargas, mobiliario y paquetería con personal capacitado.</p>
             </div>
-            <div class="glass-card p-6 rounded-2xl space-y-3">
-                <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl">
-                    <i class="fa-solid fa-star"></i>
+            
+            <div class="glass-card p-6 rounded-2xl space-y-4 group">
+                <div class="flex justify-between items-center">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-transform duration-300 group-hover:scale-110" style="background: rgba(255,255,255,0.04); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.15);">
+                        <i class="fa-solid fa-location-crosshairs"></i>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style="background: rgba(255,255,255,0.03); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.15);">Seguridad</span>
                 </div>
-                <h3 class="text-lg font-bold text-white">Atención Personalizada</h3>
-                <p class="text-sm text-gray-400 leading-relaxed">Soluciones a la medida de tu presupuesto con foco en la satisfacción completa.</p>
+                <h3 class="text-xl font-bold text-white tracking-tight display-font">Monitoreo & Seguimiento en Tiempo Real</h3>
+                <p class="text-sm text-slate-400 leading-relaxed">Control satelital de flotas para garantizar el arribo seguro a destino.</p>
+            </div>
+            
+            <div class="glass-card p-6 rounded-2xl space-y-4 group">
+                <div class="flex justify-between items-center">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-transform duration-300 group-hover:scale-110" style="background: rgba(255,255,255,0.04); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.15);">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style="background: rgba(255,255,255,0.03); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.15);">Puntualidad</span>
+                </div>
+                <h3 class="text-xl font-bold text-white tracking-tight display-font">Puntualidad & Tiempos Garantizados</h3>
+                <p class="text-sm text-slate-400 leading-relaxed">Compromiso estricto con los horarios acordados de carga y descarga.</p>
+            </div>
+            
+            <div class="glass-card p-6 rounded-2xl space-y-4 group">
+                <div class="flex justify-between items-center">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-transform duration-300 group-hover:scale-110" style="background: rgba(255,255,255,0.04); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.15);">
+                        <i class="fa-solid fa-calculator"></i>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style="background: rgba(255,255,255,0.03); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.15);">Cotización</span>
+                </div>
+                <h3 class="text-xl font-bold text-white tracking-tight display-font">Cotización Inmediata sin Sorpresas</h3>
+                <p class="text-sm text-slate-400 leading-relaxed">Presupuestos claros calculados según volumen, peso y distancia.</p>
+            </div>
+            
+            <div class="glass-card p-6 rounded-2xl space-y-4 group">
+                <div class="flex justify-between items-center">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-transform duration-300 group-hover:scale-110" style="background: rgba(255,255,255,0.04); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.15);">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style="background: rgba(255,255,255,0.03); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.15);">B2B</span>
+                </div>
+                <h3 class="text-xl font-bold text-white tracking-tight display-font">Distribución Corporativa B2B</h3>
+                <p class="text-sm text-slate-400 leading-relaxed">Servicio diario para comercios, fábricas y distribuidores regionales.</p>
+            </div>
+            
+            <div class="glass-card p-6 rounded-2xl space-y-4 group">
+                <div class="flex justify-between items-center">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-transform duration-300 group-hover:scale-110" style="background: rgba(255,255,255,0.04); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.15);">
+                        <i class="fa-solid fa-box-open"></i>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style="background: rgba(255,255,255,0.03); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.15);">Protección</span>
+                </div>
+                <h3 class="text-xl font-bold text-white tracking-tight display-font">Embalaje Protegido & Carga Segura</h3>
+                <p class="text-sm text-slate-400 leading-relaxed">Protección especial para mercadería delicada durante el trayecto.</p>
+            </div>
+            
             </div>
         </section>
 
-        <!-- BANNER DE CONVERSIÓN COMERCIAL -->
-        <section class="glass-card p-8 rounded-3xl border border-indigo-500/20 text-center space-y-4 relative overflow-hidden">
-            <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-indigo-600/10 rounded-full blur-2xl"></div>
-            <h2 class="text-2xl font-bold text-white">¿Listo para potenciar la presencia de Contenedores & Volquetes Córdoba S.A.?</h2>
-            <p class="text-sm text-gray-400 max-w-xl mx-auto">Reserva la propiedad intelectual del dominio oficial <strong class="text-indigo-300 font-mono">contenedoresvolquetescórdobasa.com</strong> y activa la plataforma comercial hoy mismo.</p>
-            <div class="pt-2">
-                <a href="https://checkout.dlocalgo.com/v1/pay/demo-350-usd" target="_blank" class="inline-flex bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-emerald-600/20 transition-all text-sm items-center gap-2">
-                    <i class="fa-solid fa-cart-shopping"></i> Confirmar Propuesta ($350 USD)
-                </a>
+        <!-- SECCIÓN 2: NOVEDADES & NOTICIAS DEL SECTOR -->
+        <section id="noticias" class="space-y-8">
+            <div class="text-center space-y-2">
+                <span class="text-xs font-bold uppercase font-mono tracking-widest text-slate-400">Actualidad & Contenido</span>
+                <h2 class="text-3xl font-extrabold text-white tracking-tight display-font">Novedades & Noticias del Sector</h2>
+                <p class="text-sm text-slate-400 max-w-xl mx-auto">Información de interés, tendencias y recomendaciones preparadas por nuestro equipo.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+            <div class="glass-card p-6 rounded-2xl space-y-4 group">
+                <div class="flex items-center justify-between text-xs text-slate-400">
+                    <span class="font-semibold text-emerald-400 flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-[9px]"></i> Logística Moderna</span>
+                    <span class="font-mono text-slate-500">3 min de lectura</span>
+                </div>
+                <h3 class="text-lg font-bold text-white group-hover:text-amber-400 transition-colors leading-snug">Optimización de Rutas para Envíos Rápidos</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">Cómo reducimos tiempos de viaje y costos de transporte para nuestros clientes.</p>
+                <div class="pt-2">
+                    <a href="https://wa.me/543514559012?text=Hola%20Contenedores%20&%20Volquetes%20Córdoba%20S.A.,%20preparé%20una%20demo%20comercial%20exclusiva%20de%20su%20nuevo%20sitio%20web%20(miempresa.com):%20http://localhost:8000/static/demos/pyme_001.html" target="_blank" class="text-xs font-semibold inline-flex items-center gap-1.5" style="color: #10b981;">Leer artículo completo <i class="fa-solid fa-arrow-right text-[10px]"></i></a>
+                </div>
+            </div>
+            
+            <div class="glass-card p-6 rounded-2xl space-y-4 group">
+                <div class="flex items-center justify-between text-xs text-slate-400">
+                    <span class="font-semibold text-emerald-400 flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-[9px]"></i> Guía Práctica</span>
+                    <span class="font-mono text-slate-500">4 min de lectura</span>
+                </div>
+                <h3 class="text-lg font-bold text-white group-hover:text-amber-400 transition-colors leading-snug">Claves para Planificar una Mudanza Exitosa</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">Consejos de embalaje y organización para un traslado rápido y seguro.</p>
+                <div class="pt-2">
+                    <a href="https://wa.me/543514559012?text=Hola%20Contenedores%20&%20Volquetes%20Córdoba%20S.A.,%20preparé%20una%20demo%20comercial%20exclusiva%20de%20su%20nuevo%20sitio%20web%20(miempresa.com):%20http://localhost:8000/static/demos/pyme_001.html" target="_blank" class="text-xs font-semibold inline-flex items-center gap-1.5" style="color: #10b981;">Leer artículo completo <i class="fa-solid fa-arrow-right text-[10px]"></i></a>
+                </div>
+            </div>
+            
+            <div class="glass-card p-6 rounded-2xl space-y-4 group">
+                <div class="flex items-center justify-between text-xs text-slate-400">
+                    <span class="font-semibold text-emerald-400 flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-[9px]"></i> Novedades Empresa</span>
+                    <span class="font-mono text-slate-500">2 min de lectura</span>
+                </div>
+                <h3 class="text-lg font-bold text-white group-hover:text-amber-400 transition-colors leading-snug">Modernización de Flotas & Seguridad Vial</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">Incorporamos nuevas unidades equipadas para mayor capacidad de carga.</p>
+                <div class="pt-2">
+                    <a href="https://wa.me/543514559012?text=Hola%20Contenedores%20&%20Volquetes%20Córdoba%20S.A.,%20preparé%20una%20demo%20comercial%20exclusiva%20de%20su%20nuevo%20sitio%20web%20(miempresa.com):%20http://localhost:8000/static/demos/pyme_001.html" target="_blank" class="text-xs font-semibold inline-flex items-center gap-1.5" style="color: #10b981;">Leer artículo completo <i class="fa-solid fa-arrow-right text-[10px]"></i></a>
+                </div>
+            </div>
+            
+            </div>
+        </section>
+
+        
+
+        <!-- SECCIÓN 5: UBICACIÓN & HORARIOS -->
+        <section id="contacto" class="glass-card p-8 md:p-10 rounded-3xl relative overflow-hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div class="space-y-6">
+                    <span class="text-xs font-bold uppercase font-mono tracking-widest text-emerald-400 flex items-center gap-2">
+                        <i class="fa-solid fa-location-dot"></i> Ubicación & Atención Directa
+                    </span>
+                    <h2 class="text-3xl font-extrabold text-white tracking-tight display-font">Atención Presencial & Canales Oficiales en Córdoba, AR</h2>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        Estamos comprometidos a brindar respuestas rápidas y asesoría transparente. Contáctanos por nuestro canal directo o solicita una reunión comercial.
+                    </p>
+                    <div class="space-y-3 text-xs text-slate-300">
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-clock text-amber-400 w-5 text-center"></i> <span><strong>Horarios:</strong> Lunes a Sábados: 07:30 - 19:30 hs</span></div>
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-map-location-dot text-sky-400 w-5 text-center"></i> <span><strong>Ciudad:</strong> Córdoba, AR</span></div>
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-globe text-indigo-400 w-5 text-center"></i> <span><strong>Dominio Exclusivo:</strong> miempresa.com</span></div>
+                    </div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl text-center space-y-4 border border-white/10" style="background: rgba(0,0,0,0.2);">
+                    <div class="w-12 h-12 mx-auto rounded-full flex items-center justify-center text-xl text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+                        <i class="fa-solid fa-headset"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white display-font">¿Dudas sobre el servicio?</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">Ponte en contacto directo con nuestro equipo de atención.</p>
+                    <a href="https://wa.me/543514559012?text=Hola%20Contenedores%20&%20Volquetes%20Córdoba%20S.A.,%20preparé%20una%20demo%20comercial%20exclusiva%20de%20su%20nuevo%20sitio%20web%20(miempresa.com):%20http://localhost:8000/static/demos/pyme_001.html" target="_blank" class="w-full text-white font-bold py-3.5 px-6 rounded-xl transition-all duration-200 text-xs flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-900/30">
+                        <i class="fa-brands fa-whatsapp text-base"></i> Iniciar Chat en WhatsApp
+                    </a>
+                </div>
             </div>
         </section>
     </main>
 
-    <!-- FOOTER -->
-    <footer class="max-w-6xl mx-auto w-full px-6 py-8 border-t border-gray-800/80 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500 gap-4">
+    <!-- PIE DE PÁGINA PÚBLICO DEL CLIENTE -->
+    <footer class="max-w-7xl mx-auto w-full px-6 py-6 border-t border-white/5 flex justify-between items-center text-xs text-slate-500 relative z-10">
         <p>© 2026 Contenedores & Volquetes Córdoba S.A.. Todos los derechos reservados.</p>
-        <p class="font-mono text-gray-600">Demo Comercial Generada por Emayon Forge — Nicho Landing Factory</p>
+        <p class="text-slate-500 font-mono">Sitio Web Oficial — Córdoba, AR</p>
+    </footer>
+
+    <!-- WIDGET FLOTANTE DE WHATSAPP PÚBLICO -->
+    <a href="https://wa.me/543514559012?text=Hola%20Contenedores%20&%20Volquetes%20Córdoba%20S.A.,%20preparé%20una%20demo%20comercial%20exclusiva%20de%20su%20nuevo%20sitio%20web%20(miempresa.com):%20http://localhost:8000/static/demos/pyme_001.html" target="_blank" class="fixed bottom-6 right-6 z-40 w-14 h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center text-2xl shadow-2xl shadow-emerald-900/50 transition-transform duration-300 hover:scale-110 border-2 border-white/20">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+
+    <!-- ========================================================================= -->
+    <!-- 2. DIVISOR COMERCIAL MARKETINERO: "IMPULSÁ TU NEGOCIO"                    -->
+    <!-- ========================================================================= -->
+    <section class="w-full bg-slate-900 border-t-2 border-b-2 border-amber-400/40 py-10 px-6 text-slate-100 shadow-2xl relative z-30">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-4 text-left">
+                <div class="w-12 h-12 rounded-2xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400 text-2xl font-bold">
+                    <i class="fa-solid fa-rocket"></i>
+                </div>
+                <div>
+                    <span class="text-xs font-mono font-bold tracking-widest text-amber-400 uppercase flex items-center gap-1.5">
+                        <i class="fa-solid fa-bolt text-[10px]"></i> Crecimiento & Automatización B2B
+                    </span>
+                    <h3 class="text-xl md:text-2xl font-extrabold text-white tracking-tight">Impulsá la Presencia Digital de Contenedores & Volquetes Córdoba S.A. al Siguiente Nivel</h3>
+                    <p class="text-xs text-slate-300">Descubrí las capacidades enterprise y módulos avanzados desarrollados por Emayon Forge.</p>
+                </div>
+            </div>
+            <a href="#enterprise" class="px-6 py-3.5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-amber-400/20 transition-all">
+                Ver Módulos Enterprise <i class="fa-solid fa-arrow-down text-[10px]"></i>
+            </a>
+        </div>
+    </section>
+
+
+    <!-- ========================================================================= -->
+    <!-- 3. CANVAS ENTERPRISE APPLE STYLE (FONDO BLANCO LÍMPIDO CON LOGO EMAYOON)   -->
+    <!-- ========================================================================= -->
+    <section id="enterprise" class="w-full bg-white text-slate-950 py-20 px-6 relative z-20 border-b border-slate-200">
+        <div class="max-w-7xl mx-auto space-y-12">
+            
+            <!-- HEADER DE SECCIÓN CON LOGO EMAYOON FORGE -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-200 pb-8">
+                <div class="space-y-2 max-w-2xl">
+                    <div class="inline-flex items-center gap-2 text-xs font-bold uppercase font-mono tracking-widest px-3.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-300">
+                        <i class="fa-solid fa-crown text-amber-600"></i> Potencial Enterprise de Contenedores & Volquetes Córdoba S.A.
+                    </div>
+                    <h2 class="text-3xl md:text-5xl font-black text-slate-950 tracking-tight leading-tight display-font">
+                        Módulos & Capacidades a Desbloquear
+                    </h2>
+                    <p class="text-slate-600 text-sm md:text-base leading-relaxed">
+                        Esta demo representa la base visual de tu plataforma. Al contratar tu plan oficial, podrás desbloquear estas 6 funciones avanzadas para automatizar tu negocio al 100%.
+                    </p>
+                </div>
+
+                <!-- BADGE CON LOGO OFICIAL EMAYOON FORGE Y ENLACE -->
+                <a href="https://emayonforge.com/" target="_blank" class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-200 hover:border-slate-300 transition-all group shadow-sm">
+                    <div class="w-11 h-11 rounded-xl bg-slate-950 flex items-center justify-center text-amber-400 font-bold text-2xl shadow-md group-hover:scale-105 transition-transform">
+                        ⚡
+                    </div>
+                    <div>
+                        <span class="text-xs font-black tracking-tight text-slate-950 uppercase block">EMAYON FORGE</span>
+                        <span class="text-[10px] font-mono text-slate-500 flex items-center gap-1">emayonforge.com <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i></span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- GRID DE LOS 6 MÓDULOS ENTERPRISE (ESTILO APPLE) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+            <div class="bg-slate-50 p-7 rounded-3xl space-y-4 border border-slate-200 hover:border-slate-400 hover:shadow-xl transition-all duration-300 relative group flex flex-col justify-between">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-xl text-slate-900 shadow-sm border border-slate-200">
+                            <i class="fa-solid fa-credit-card"></i>
+                        </div>
+                        <span class="text-[10px] font-bold tracking-wider uppercase px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200 flex items-center gap-1">
+                            <i class="fa-solid fa-lock text-[9px]"></i> Módulo A Desbloquear
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-mono font-bold tracking-wider">Finanzas & Ventas</span>
+                        <h3 class="text-xl font-bold text-slate-950 tracking-tight mt-0.5">Pasarela de Cobros Online Integrada</h3>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">Acepta MercadoPago, DLocal GO, tarjetas de débito/crédito y transferencias directo desde tu sitio.</p>
+                </div>
+                <div class="pt-4 border-t border-slate-200">
+                    <a href="https://wa.me/543514559012?text=Hola%20Contenedores%20&%20Volquetes%20Córdoba%20S.A.,%20preparé%20una%20demo%20comercial%20exclusiva%20de%20su%20nuevo%20sitio%20web%20(miempresa.com):%20http://localhost:8000/static/demos/pyme_001.html" target="_blank" class="w-full text-xs font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all bg-slate-950 hover:bg-slate-800 text-white shadow-md">
+                        <i class="fa-solid fa-key text-[10px]"></i> Solicitar Activación de Módulo
+                    </a>
+                </div>
+            </div>
+            
+            <div class="bg-slate-50 p-7 rounded-3xl space-y-4 border border-slate-200 hover:border-slate-400 hover:shadow-xl transition-all duration-300 relative group flex flex-col justify-between">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-xl text-slate-900 shadow-sm border border-slate-200">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <span class="text-[10px] font-bold tracking-wider uppercase px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200 flex items-center gap-1">
+                            <i class="fa-solid fa-lock text-[9px]"></i> Módulo A Desbloquear
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-mono font-bold tracking-wider">Inteligencia Artificial</span>
+                        <h3 class="text-xl font-bold text-slate-950 tracking-tight mt-0.5">Agente de IA 24/7 en WhatsApp</h3>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">Atención automática de consultas, cotizaciones y reservas vía WhatsApp incluso fuera de horario laboral.</p>
+                </div>
+                <div class="pt-4 border-t border-slate-200">
+                    <a href="https://wa.me/543514559012?text=Hola%20Contenedores%20&%20Volquetes%20Córdoba%20S.A.,%20preparé%20una%20demo%20comercial%20exclusiva%20de%20su%20nuevo%20sitio%20web%20(miempresa.com):%20http://localhost:8000/static/demos/pyme_001.html" target="_blank" class="w-full text-xs font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all bg-slate-950 hover:bg-slate-800 text-white shadow-md">
+                        <i class="fa-solid fa-key text-[10px]"></i> Solicitar Activación de Módulo
+                    </a>
+                </div>
+            </div>
+            
+            <div class="bg-slate-50 p-7 rounded-3xl space-y-4 border border-slate-200 hover:border-slate-400 hover:shadow-xl transition-all duration-300 relative group flex flex-col justify-between">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-xl text-slate-900 shadow-sm border border-slate-200">
+                            <i class="fa-solid fa-shop"></i>
+                        </div>
+                        <span class="text-[10px] font-bold tracking-wider uppercase px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200 flex items-center gap-1">
+                            <i class="fa-solid fa-lock text-[9px]"></i> Módulo A Desbloquear
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-mono font-bold tracking-wider">Ventas Digitales</span>
+                        <h3 class="text-xl font-bold text-slate-950 tracking-tight mt-0.5">Catálogo Interactivo con Carrito</h3>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">Muestra tu oferta de productos o servicios con precios, fotos, variaciones y pedidos directos.</p>
+                </div>
+                <div class="pt-4 border-t border-slate-200">
+                    <a href="https://wa.me/543514559012?text=Hola%20Contenedores%20&%20Volquetes%20Córdoba%20S.A.,%20preparé%20una%20demo%20comercial%20exclusiva%20de%20su%20nuevo%20sitio%20web%20(miempresa.com):%20http://localhost:8000/static/demos/pyme_001.html" target="_blank" class="w-full text-xs font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all bg-slate-950 hover:bg-slate-800 text-white shadow-md">
+                        <i class="fa-solid fa-key text-[10px]"></i> Solicitar Activación de Módulo
+                    </a>
+                </div>
+            </div>
+            
+            <div class="bg-slate-50 p-7 rounded-3xl space-y-4 border border-slate-200 hover:border-slate-400 hover:shadow-xl transition-all duration-300 relative group flex flex-col justify-between">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-xl text-slate-900 shadow-sm border border-slate-200">
+                            <i class="fa-solid fa-calendar-days"></i>
+                        </div>
+                        <span class="text-[10px] font-bold tracking-wider uppercase px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200 flex items-center gap-1">
+                            <i class="fa-solid fa-lock text-[9px]"></i> Módulo A Desbloquear
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-mono font-bold tracking-wider">Gestión Operativa</span>
+                        <h3 class="text-xl font-bold text-slate-950 tracking-tight mt-0.5">Motor de Reservas & Turnos Online</h3>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">Agendamiento automatizado sin solapamientos, sincronizado con calendarios y recordatorios por WhatsApp.</p>
+                </div>
+                <div class="pt-4 border-t border-slate-200">
+                    <a href="https://wa.me/543514559012?text=Hola%20Contenedores%20&%20Volquetes%20Córdoba%20S.A.,%20preparé%20una%20demo%20comercial%20exclusiva%20de%20su%20nuevo%20sitio%20web%20(miempresa.com):%20http://localhost:8000/static/demos/pyme_001.html" target="_blank" class="w-full text-xs font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all bg-slate-950 hover:bg-slate-800 text-white shadow-md">
+                        <i class="fa-solid fa-key text-[10px]"></i> Solicitar Activación de Módulo
+                    </a>
+                </div>
+            </div>
+            
+            <div class="bg-slate-50 p-7 rounded-3xl space-y-4 border border-slate-200 hover:border-slate-400 hover:shadow-xl transition-all duration-300 relative group flex flex-col justify-between">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-xl text-slate-900 shadow-sm border border-slate-200">
+                            <i class="fa-solid fa-chart-pie"></i>
+                        </div>
+                        <span class="text-[10px] font-bold tracking-wider uppercase px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200 flex items-center gap-1">
+                            <i class="fa-solid fa-lock text-[9px]"></i> Módulo A Desbloquear
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-mono font-bold tracking-wider">Gestión Comercial</span>
+                        <h3 class="text-xl font-bold text-slate-950 tracking-tight mt-0.5">CRM Integrado & Analítica de Leads</h3>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">Panel exclusivo de clientes para gestionar prospectos, historial de ventas y tasa de conversión.</p>
+                </div>
+                <div class="pt-4 border-t border-slate-200">
+                    <a href="https://wa.me/543514559012?text=Hola%20Contenedores%20&%20Volquetes%20Córdoba%20S.A.,%20preparé%20una%20demo%20comercial%20exclusiva%20de%20su%20nuevo%20sitio%20web%20(miempresa.com):%20http://localhost:8000/static/demos/pyme_001.html" target="_blank" class="w-full text-xs font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all bg-slate-950 hover:bg-slate-800 text-white shadow-md">
+                        <i class="fa-solid fa-key text-[10px]"></i> Solicitar Activación de Módulo
+                    </a>
+                </div>
+            </div>
+            
+            <div class="bg-slate-50 p-7 rounded-3xl space-y-4 border border-slate-200 hover:border-slate-400 hover:shadow-xl transition-all duration-300 relative group flex flex-col justify-between">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-xl text-slate-900 shadow-sm border border-slate-200">
+                            <i class="fa-solid fa-globe"></i>
+                        </div>
+                        <span class="text-[10px] font-bold tracking-wider uppercase px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200 flex items-center gap-1">
+                            <i class="fa-solid fa-lock text-[9px]"></i> Módulo A Desbloquear
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-mono font-bold tracking-wider">Infraestructura</span>
+                        <h3 class="text-xl font-bold text-slate-950 tracking-tight mt-0.5">Dominio Propio .COM + SSL Enterprise</h3>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">Infraestructura de servidor de alta velocidad CDN, certificado SSL y emails corporativos incluidos.</p>
+                </div>
+                <div class="pt-4 border-t border-slate-200">
+                    <a href="https://wa.me/543514559012?text=Hola%20Contenedores%20&%20Volquetes%20Córdoba%20S.A.,%20preparé%20una%20demo%20comercial%20exclusiva%20de%20su%20nuevo%20sitio%20web%20(miempresa.com):%20http://localhost:8000/static/demos/pyme_001.html" target="_blank" class="w-full text-xs font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all bg-slate-950 hover:bg-slate-800 text-white shadow-md">
+                        <i class="fa-solid fa-key text-[10px]"></i> Solicitar Activación de Módulo
+                    </a>
+                </div>
+            </div>
+            
+            </div>
+
+            <!-- ADQUISICIÓN RÁPIDA & GARANTÍA -->
+            <div class="p-8 rounded-3xl bg-slate-900 text-white flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl">
+                <div class="space-y-1 text-center md:text-left">
+                    <h3 class="text-xl font-bold tracking-tight">¿Listo para activar el dominio exclusivo miempresa.com?</h3>
+                    <p class="text-xs text-slate-300">Incluye alta en &lt; 24hs, infraestructura Cloud y la base para integrar estos módulos enterprise.</p>
+                </div>
+                <a href="https://checkout.dlocalgo.com/v1/pay/demo-350-usd" target="_blank" class="px-8 py-4 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-amber-400/20 transition-all">
+                    Adquirir Dominio ($350 USD) <i class="fa-solid fa-cart-shopping text-xs"></i>
+                </a>
+            </div>
+
+            <!-- INFRAESTRUCTURA & SEGURIDAD -->
+            <div class="pt-8 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-6 text-xs text-slate-500">
+                <span class="font-mono font-bold tracking-widest uppercase text-slate-400">INFRAESTRUCTURA CERTIFICADA:</span>
+                <div class="flex flex-wrap items-center gap-8 font-semibold text-slate-700">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-emerald-600 text-base"></i>
+                        <span>Infraestructura Cloud SSL 99.9% Uptime</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-bolt text-amber-500 text-base"></i>
+                        <span>Despliegue e Integración por Emayon Forge</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- FOOTER B2B OFICIAL EMAYOON FORGE -->
+    <footer class="w-full bg-slate-950 text-slate-400 py-8 px-6 text-xs border-t border-slate-800">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <p>© 2026 Emayon Forge. Plataforma comercial desarrollada para <strong class="text-white">Contenedores & Volquetes Córdoba S.A.</strong>.</p>
+            <a href="https://emayonforge.com/" target="_blank" class="text-amber-400 font-bold hover:underline flex items-center gap-1.5">
+                www.emayonforge.com <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+            </a>
+        </div>
     </footer>
 
 </body>

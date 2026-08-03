@@ -129,14 +129,24 @@ async def prospectar_agent_reach(
     from backend.services.agent_reach_service import ejecutar_prospeccion_agent_reach
     
     try:
-        leads_hallados = ejecutar_prospeccion_agent_reach(rubro=rubro, ciudad=ubicacion, max_results=50)
+        leads_hallados = ejecutar_prospeccion_agent_reach(rubro=rubro, ciudad=ubicacion, max_results=50, solo_con_telefono=True)
     except Exception as err:
         print(f"Error ejecutando Agent Reach: {err}")
         leads_hallados = []
 
+    # Fallback si Agent Reach no halló resultados suficientes
+    if len(leads_hallados) == 0:
+        try:
+            from backend.services.web_scraper import extraer_leads_reales_duckduckgo
+            leads_hallados = extraer_leads_reales_duckduckgo(tipo=rubro, ciudad=ubicacion, max_results=50)
+        except Exception as err2:
+            print(f"Error en fallback DuckDuckGo para Agent Reach: {err2}")
+
     guardados = 0
     for lead in leads_hallados:
-        telefono = lead.get("telefono") or "Por verificar"
+        telefono = lead.get("telefono")
+        if not telefono or telefono == "Por verificar":
+            continue
 
         es_propio = es_sitio_web_propio(lead.get("sitio_web"))
         p_data = {
@@ -146,11 +156,13 @@ async def prospectar_agent_reach(
             "ciudad_busqueda": ubicacion,
             "sitio_web": lead.get("sitio_web") if es_propio else None,
             "telefono": telefono,
-            "whatsapp": telefono if telefono != "Por verificar" else None,
-            "status": "ENRIQUECIDO" if telefono != "Por verificar" else "PENDIENTE"
+            "whatsapp": telefono,
+            "status": "ENRIQUECIDO"
         }
         crear_prospecto(db, p_data)
         guardados += 1
+        if guardados >= 50:
+            break
 
     if is_html:
         return RedirectResponse(url="/prospector", status_code=303)
@@ -250,7 +262,7 @@ async def iniciar_prospeccion_b2b(
         ciudad = form.get("ciudad_nombre", "Córdoba, AR")
         is_html = True
 
-    api_key = config.GOOGLE_PLACES_API_KEY
+    api_key = getattr(config, "GOOGLE_PLACES_API_KEY", "")
     nuevos_prospectos = []
 
     if api_key and len(api_key) > 5:
@@ -289,23 +301,28 @@ async def iniciar_prospeccion_b2b(
         leads_scraped = extraer_leads_reales_duckduckgo(tipo=tipo, ciudad=ciudad, max_results=50)
 
         for lead in leads_scraped:
+            tel_real = lead.get("telefono")
+            if not tel_real or tel_real == "Por verificar":
+                continue
+
             pid = f"real_web_{uuid.uuid4().hex[:8]}"
             es_propio = es_sitio_web_propio(lead.get("sitio_web"))
-            tel_real = lead.get("telefono")
 
             p_data = {
                 "place_id": pid,
                 "nombre": lead["nombre"],
                 "ciudad_busqueda": ciudad,
                 "tipo_busqueda": tipo,
-                "telefono": tel_real or "Por verificar",
-                "whatsapp": tel_real if (tel_real and tel_real != "Por verificar") else None,
+                "telefono": tel_real,
+                "whatsapp": tel_real,
                 "email": None,
                 "sitio_web": lead.get("sitio_web") if es_propio else None,
-                "status": "ENRIQUECIDO" if (tel_real and tel_real != "Por verificar") else "PENDIENTE"
+                "status": "ENRIQUECIDO"
             }
             crear_prospecto(db, p_data)
             nuevos_prospectos.append(p_data)
+            if len(nuevos_prospectos) >= 50:
+                break
 
     if is_html:
         return RedirectResponse(url="/prospector", status_code=303)
@@ -348,6 +365,27 @@ async def sincronizar_contactos_b2b(db: Session = Depends(get_db)):
     }
 
 
+@app.post("/api/v1/agencia/prospectos_b2b/limpiar-sin-telefono")
+@app.delete("/api/v1/agencia/prospectos_b2b/limpiar-sin-telefono")
+async def limpiar_prospectos_sin_telefono(db: Session = Depends(get_db)):
+    """Elimina de la base de datos todos los prospectos que no posean número telefónico disponible."""
+    from backend.models.prospect import ProspectoB2BModel
+    eliminados = db.query(ProspectoB2BModel).filter(
+        (ProspectoB2BModel.telefono == None) | 
+        (ProspectoB2BModel.telefono == "") | 
+        (ProspectoB2BModel.telefono == "Por verificar") | 
+        (ProspectoB2BModel.telefono == "Sin teléfono")
+    ).delete(synchronize_session=False)
+    db.commit()
+    restantes = db.query(ProspectoB2BModel).count()
+    return {
+        "status": "ok",
+        "eliminados": eliminados,
+        "restantes": restantes,
+        "mensaje": f"Se eliminaron {eliminados} prospectos sin teléfono. Restan {restantes} prospectos en la base de datos."
+    }
+
+
 @app.get("/api/v1/agencia/dominio/verificar")
 async def verificar_dominio(nombre: str = ""):
     clean_nombre = "".join(e for e in nombre if e.isalnum()).lower() or "miempresa"
@@ -362,9 +400,12 @@ async def verificar_dominio(nombre: str = ""):
     }
 
 
+from fastapi import Body
+
 @app.post("/api/v1/agencia/prospectos_b2b/generar-demo/{place_id}")
-async def generar_demo_prospecto(place_id: str, payload: dict, db: Session = Depends(get_db)):
+async def generar_demo_prospecto(place_id: str, payload: dict = Body(default={}), db: Session = Depends(get_db)):
     try:
+        payload = payload or {}
         precio = payload.get("precio_usd", 350)
         dominio = payload.get("dominio_elegido", "miempresa.com")
         
@@ -433,50 +474,73 @@ async def generar_demo_prospecto(place_id: str, payload: dict, db: Session = Dep
             </div>
             """
 
-        # 3. Formatear reseñas / prueba social (Grid 3 items)
-        reviews_html = ""
-        for rev in theme.get("reviews", []):
-            reviews_html += f"""
-            <div class="glass-card p-6 rounded-2xl space-y-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex text-amber-400 text-xs gap-1">
-                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                    </div>
-                    <span class="text-[11px] text-slate-400 font-mono flex items-center gap-1"><i class="fa-brands fa-google text-slate-400"></i> {rev['city']}</span>
-                </div>
-                <p class="text-sm text-slate-300 italic leading-relaxed">"{rev['comment']}"</p>
-                <div class="flex items-center gap-3 pt-2 border-t border-white/5">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white" style="background-color: {theme['accent']}; font-family: {theme['font_display']};">
-                        {rev['name'][0]}
-                    </div>
-                    <div>
-                        <div class="text-xs font-bold text-white">{rev['name']}</div>
-                        <div class="text-[10px] text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-circle-check text-[8px]"></i> Cliente Verificado</div>
-                    </div>
-                </div>
-            </div>
-            """
+        # 3. Verificación de Reseñas Auténticas de Google Maps (Si NO existen, NO mostrar la sección)
+        from backend.services.google_reviews_service import obtener_resenas_reales_google
+        resenas_autenticas = obtener_resenas_reales_google(nombre, ciudad_prospecto)
 
-        # 4. Formatear módulos enterprise a desbloquear (Grid 6 items)
+        reviews_section_html = ""
+        nav_reviews_link_html = ""
+
+        if resenas_autenticas:
+            reviews_cards_html = ""
+            for rev in resenas_autenticas:
+                reviews_cards_html += f"""
+                <div class="glass-card p-6 rounded-2xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex text-amber-400 text-xs gap-1">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                        </div>
+                        <span class="text-[11px] text-slate-400 font-mono flex items-center gap-1"><i class="fa-brands fa-google text-slate-400"></i> {rev['city']}</span>
+                    </div>
+                    <p class="text-sm text-slate-300 italic leading-relaxed">"{rev['comment']}"</p>
+                    <div class="flex items-center gap-3 pt-2 border-t border-white/5">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white" style="background-color: {theme['accent']}; font-family: {theme['font_display']};">
+                            {rev['name'][0]}
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-white">{rev['name']}</div>
+                            <div class="text-[10px] text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-circle-check text-[8px]"></i> Opinión Verificada en Google</div>
+                        </div>
+                    </div>
+                </div>
+                """
+            reviews_section_html = f"""
+            <!-- SECCIÓN 3: PRUEBA SOCIAL & RESEÑAS -->
+            <section id="reseñas" class="space-y-8">
+                <div class="text-center space-y-2">
+                    <span class="text-xs font-bold uppercase font-mono tracking-widest text-slate-400">Confianza Comprobada</span>
+                    <h2 class="text-3xl font-extrabold text-white tracking-tight display-font">Opiniones Reales de Nuestros Clientes</h2>
+                    <p class="text-sm text-slate-400 max-w-xl mx-auto">Reseñas autenticadas de quienes confían en {nombre} en Google Maps.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {reviews_cards_html}
+                </div>
+            </section>
+            """
+            nav_reviews_link_html = '<a href="#reseñas" class="hover:text-white transition-colors">Opiniones</a>'
+
+        # 4. Formatear los 6 Módulos Enterprise en tarjetas Apple-Style (Canvas Blanco)
         enterprise_html = ""
         for mod in theme.get("enterprise_modules", []):
             enterprise_html += f"""
-            <div class="glass-card p-6 rounded-2xl space-y-4 relative overflow-hidden group hover:border-amber-500/40">
-                <div class="flex items-center justify-between">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style="background: rgba(255,255,255,0.05); color: {theme['accent']}; border: 1px solid {theme['border']};">
-                        <i class="fa-solid {mod['icon']}"></i>
+            <div class="bg-slate-50 p-7 rounded-3xl space-y-4 border border-slate-200 hover:border-slate-400 hover:shadow-xl transition-all duration-300 relative group flex flex-col justify-between">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-xl text-slate-900 shadow-sm border border-slate-200">
+                            <i class="fa-solid {mod['icon']}"></i>
+                        </div>
+                        <span class="text-[10px] font-bold tracking-wider uppercase px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200 flex items-center gap-1">
+                            <i class="fa-solid fa-lock text-[9px]"></i> Módulo A Desbloquear
+                        </span>
                     </div>
-                    <span class="text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1">
-                        <i class="fa-solid fa-lock text-[9px]"></i> Módulo A Desbloquear
-                    </span>
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-mono font-bold tracking-wider">{mod['tag']}</span>
+                        <h3 class="text-xl font-bold text-slate-950 tracking-tight mt-0.5">{mod['title']}</h3>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">{mod['desc']}</p>
                 </div>
-                <div>
-                    <span class="text-[10px] text-slate-400 uppercase font-mono tracking-wider">{mod['tag']}</span>
-                    <h3 class="text-lg font-bold text-white tracking-tight">{mod['title']}</h3>
-                </div>
-                <p class="text-xs text-slate-400 leading-relaxed">{mod['desc']}</p>
-                <div class="pt-2">
-                    <a href="{nav_wa_link}" target="_blank" class="w-full text-xs font-semibold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all bg-white/5 hover:bg-amber-500/20 text-slate-300 hover:text-amber-300 border border-white/10 hover:border-amber-500/30">
+                <div class="pt-4 border-t border-slate-200">
+                    <a href="{nav_wa_link}" target="_blank" class="w-full text-xs font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all bg-slate-950 hover:bg-slate-800 text-white shadow-md">
                         <i class="fa-solid fa-key text-[10px]"></i> Solicitar Activación de Módulo
                     </a>
                 </div>
@@ -490,7 +554,7 @@ async def generar_demo_prospecto(place_id: str, payload: dict, db: Session = Dep
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{nombre} — Sitio Oficial Enterprise & Plataforma Digital</title>
+    <title>{nombre} — Sitio Oficial Público & Vista Previa</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="{theme['font_google']}" rel="stylesheet">
@@ -506,8 +570,24 @@ async def generar_demo_prospecto(place_id: str, payload: dict, db: Session = Dep
 </head>
 <body class="min-h-screen flex flex-col justify-between antialiased hero-bg text-slate-100" style="background-color: {theme['bg']};">
 
-    <!-- STICKY NAVBAR -->
-    <header class="sticky top-0 z-50 backdrop-blur-xl border-b border-white/5 bg-slate-950/70">
+    <!-- EMAYOON FORGE COMMERCIAL B2B DOCK (SUPERIOR) -->
+    <div class="bg-slate-950/95 border-b border-amber-500/30 px-6 py-2.5 flex flex-wrap justify-between items-center text-xs backdrop-blur-xl z-50 sticky top-0">
+        <div class="flex items-center gap-2 font-medium">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+            <span class="text-slate-300">Propuesta Comercial B2B por <a href="https://emayonforge.com/" target="_blank" class="text-amber-400 font-bold hover:underline">Emayon Forge</a> para <strong class="text-white">{nombre}</strong></span>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="#enterprise" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 shadow-md">
+                <i class="fa-solid fa-arrow-down text-xs"></i> Ver Módulos Enterprise
+            </a>
+            <a href="https://emayonforge.com/" target="_blank" class="text-slate-400 hover:text-white transition-colors flex items-center gap-1 text-[11px]">
+                emayonforge.com <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- STICKY NAVBAR PÚBLICO DEL CLIENTE -->
+    <header class="sticky top-[41px] z-40 backdrop-blur-xl border-b border-white/5 bg-slate-950/80">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <a href="#hero" class="flex items-center gap-3 group">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shadow-lg transition-transform group-hover:scale-105" style="background-color: {theme['accent']};">
@@ -516,28 +596,24 @@ async def generar_demo_prospecto(place_id: str, payload: dict, db: Session = Dep
                 <span class="text-lg font-bold text-white tracking-tight display-font">{nombre}</span>
             </a>
 
-            <!-- NAV LINKS -->
+            <!-- NAV LINKS PÚBLICOS -->
             <nav class="hidden md:flex items-center gap-6 text-xs font-medium text-slate-300">
                 <a href="#hero" class="hover:text-white transition-colors">Inicio</a>
                 <a href="#servicios" class="hover:text-white transition-colors">Servicios</a>
                 <a href="#noticias" class="hover:text-white transition-colors">Novedades</a>
-                <a href="#reseñas" class="hover:text-white transition-colors">Opiniones</a>
-                <a href="#enterprise" class="text-amber-400 font-semibold hover:text-amber-300 flex items-center gap-1"><i class="fa-solid fa-lock text-[10px]"></i> Enterprise</a>
+                {nav_reviews_link_html}
                 <a href="#contacto" class="hover:text-white transition-colors">Ubicación</a>
             </nav>
 
             <div class="flex items-center gap-3">
-                <a href="#enterprise" class="hidden sm:inline-flex text-xs px-3.5 py-2 rounded-xl font-bold transition-all border border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 flex items-center gap-1.5">
-                    <i class="fa-solid fa-shield-halved text-xs"></i> 🔒 Desbloquear
-                </a>
-                <a href="{nav_wa_link}" target="_blank" class="text-xs bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white font-bold px-4 py-2 rounded-xl transition-all duration-200 border border-emerald-500/30 hover:border-emerald-500 flex items-center gap-1.5 shadow-sm">
+                <a href="{nav_wa_link}" target="_blank" class="text-xs bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white font-bold px-4.5 py-2.5 rounded-xl transition-all duration-200 border border-emerald-500/30 hover:border-emerald-500 flex items-center gap-1.5 shadow-sm">
                     <i class="fa-brands fa-whatsapp text-sm"></i> Contactar
                 </a>
             </div>
         </div>
     </header>
 
-    <!-- HERO SECTION -->
+    <!-- 1. PARTE PÚBLICA: LANDING PAGE DEL CLIENTE -->
     <main class="max-w-7xl mx-auto w-full px-6 py-16 space-y-24 relative z-10" id="hero">
         <section class="text-center space-y-6 max-w-4xl mx-auto pt-4">
             <div class="inline-flex flex-wrap justify-center items-center gap-3 text-xs px-4 py-2 rounded-full font-medium shadow-sm" style="background: rgba(255,255,255,0.03); border: 1px solid {theme['border']}; color: {theme['accent']};">
@@ -554,14 +630,14 @@ async def generar_demo_prospecto(place_id: str, payload: dict, db: Session = Dep
                 {ctx_web['resumen_web']}
             </p>
             <div class="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-                <a href="https://checkout.dlocalgo.com/v1/pay/demo-{precio}-usd" target="_blank" class="text-white font-bold py-4 px-8 rounded-xl transition-all duration-200 text-sm flex items-center justify-center gap-2 glow-btn" style="background-color: {theme['accent']};">
-                    <i class="fa-solid fa-lock"></i> Adquirir Dominio {dominio} (${precio} USD)
+                <a href="#contacto" class="text-white font-bold py-4 px-8 rounded-xl transition-all duration-200 text-sm flex items-center justify-center gap-2 glow-btn" style="background-color: {theme['accent']};">
+                    <i class="fa-solid fa-calendar-check"></i> Consultar Ahora
                 </a>
                 {button_wa_html}
             </div>
         </section>
 
-        <!-- SECCIÓN 1: SERVICIOS & ESPECIALIDADES -->
+        <!-- SECCIÓN 1: SERVICIOS & ESPECIALIDADES DEL CLIENTE -->
         <section id="servicios" class="space-y-8">
             <div class="text-center space-y-2">
                 <span class="text-xs font-bold uppercase font-mono tracking-widest text-slate-400">Oferta Comercial</span>
@@ -585,36 +661,7 @@ async def generar_demo_prospecto(place_id: str, payload: dict, db: Session = Dep
             </div>
         </section>
 
-        <!-- SECCIÓN 3: PRUEBA SOCIAL & RESEÑAS -->
-        <section id="reseñas" class="space-y-8">
-            <div class="text-center space-y-2">
-                <span class="text-xs font-bold uppercase font-mono tracking-widest text-slate-400">Confianza Comprobada</span>
-                <h2 class="text-3xl font-extrabold text-white tracking-tight display-font">Opiniones de Nuestros Clientes</h2>
-                <p class="text-sm text-slate-400 max-w-xl mx-auto">La satisfacción de quienes confían en {nombre} diariamente.</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {reviews_html}
-            </div>
-        </section>
-
-        <!-- SECCIÓN 4: 🔒 MÓDULOS ENTERPRISE A DESBLOQUEAR -->
-        <section id="enterprise" class="space-y-8 pt-6">
-            <div class="glass-card p-8 md:p-10 rounded-3xl space-y-8 relative overflow-hidden border border-amber-500/30">
-                <div class="absolute -top-32 -right-32 w-80 h-80 rounded-full blur-3xl opacity-20 pointer-events-none bg-amber-500"></div>
-                <div class="text-center space-y-3 max-w-2xl mx-auto">
-                    <span class="text-xs font-bold uppercase font-mono tracking-widest px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 inline-flex items-center gap-1.5">
-                        <i class="fa-solid fa-crown text-amber-400"></i> Potencial Enterprise de {nombre}
-                    </span>
-                    <h2 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight display-font">Módulos & Capacidades a Desbloquear</h2>
-                    <p class="text-sm text-slate-300 leading-relaxed">
-                        Esta demo representa la base visual de tu plataforma. Al contratar tu plan oficial, podrás desbloquear estas 6 funciones avanzadas para automatizar tu negocio al 100%.
-                    </p>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {enterprise_html}
-                </div>
-            </div>
-        </section>
+        {reviews_section_html}
 
         <!-- SECCIÓN 5: UBICACIÓN & HORARIOS -->
         <section id="contacto" class="glass-card p-8 md:p-10 rounded-3xl relative overflow-hidden">
@@ -637,40 +684,126 @@ async def generar_demo_prospecto(place_id: str, payload: dict, db: Session = Dep
                     <div class="w-12 h-12 mx-auto rounded-full flex items-center justify-center text-xl text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
                         <i class="fa-solid fa-headset"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-white display-font">¿Dudas sobre la implementación?</h3>
-                    <p class="text-xs text-slate-400 leading-relaxed">Nuestro equipo comercial te guiará en el proceso de alta y migración de tu dominio.</p>
+                    <h3 class="text-xl font-bold text-white display-font">¿Dudas sobre el servicio?</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">Ponte en contacto directo con nuestro equipo de atención.</p>
                     <a href="{nav_wa_link}" target="_blank" class="w-full text-white font-bold py-3.5 px-6 rounded-xl transition-all duration-200 text-xs flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-900/30">
                         <i class="fa-brands fa-whatsapp text-base"></i> Iniciar Chat en WhatsApp
                     </a>
                 </div>
             </div>
         </section>
-
-        <!-- BANNER DE CONVERSIÓN FINAL -->
-        <section class="glass-card p-8 md:p-10 rounded-3xl text-center space-y-4 relative overflow-hidden">
-            <div class="absolute -top-24 -right-24 w-60 h-60 rounded-full blur-3xl opacity-20 pointer-events-none" style="background-color: {theme['accent']};"></div>
-            <h2 class="text-2xl md:text-3xl font-bold text-white tracking-tight display-font">¿Listo para activar la plataforma digital de {nombre}?</h2>
-            <p class="text-sm md:text-base text-slate-400 max-w-xl mx-auto leading-relaxed">Asegura la propiedad exclusiva del dominio <strong class="font-mono text-white px-1.5 py-0.5 rounded bg-white/5 border border-white/10">{dominio}</strong> y pon en marcha tu presencia comercial oficial hoy mismo.</p>
-            <div class="pt-4 flex flex-col sm:flex-row justify-center gap-4">
-                <a href="https://checkout.dlocalgo.com/v1/pay/demo-{precio}-usd" target="_blank" class="inline-flex text-white font-bold py-3.5 px-8 rounded-xl transition-all duration-200 text-sm items-center justify-center gap-2 glow-btn" style="background-color: {theme['accent']};">
-                    <i class="fa-solid fa-cart-shopping"></i> {theme['cta_text']} (${precio} USD)
-                </a>
-                <a href="#enterprise" class="inline-flex text-amber-300 font-bold py-3.5 px-8 rounded-xl transition-all duration-200 text-sm items-center justify-center gap-2 border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20">
-                    <i class="fa-solid fa-shield-halved"></i> Ver Módulos Enterprise
-                </a>
-            </div>
-        </section>
     </main>
 
-    <!-- WIDGET FLOTANTE DE WHATSAPP -->
-    <a href="{nav_wa_link}" target="_blank" class="fixed bottom-6 right-6 z-50 w-14 h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center text-2xl shadow-2xl shadow-emerald-900/50 transition-transform duration-300 hover:scale-110 border-2 border-white/20">
+    <!-- PIE DE PÁGINA PÚBLICO DEL CLIENTE -->
+    <footer class="max-w-7xl mx-auto w-full px-6 py-6 border-t border-white/5 flex justify-between items-center text-xs text-slate-500 relative z-10">
+        <p>© 2026 {nombre}. Todos los derechos reservados.</p>
+        <p class="text-slate-500 font-mono">Sitio Web Oficial — {ciudad_prospecto}</p>
+    </footer>
+
+    <!-- WIDGET FLOTANTE DE WHATSAPP PÚBLICO -->
+    <a href="{nav_wa_link}" target="_blank" class="fixed bottom-6 right-6 z-40 w-14 h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center text-2xl shadow-2xl shadow-emerald-900/50 transition-transform duration-300 hover:scale-110 border-2 border-white/20">
         <i class="fa-brands fa-whatsapp"></i>
     </a>
 
-    <!-- FOOTER -->
-    <footer class="max-w-7xl mx-auto w-full px-6 py-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 gap-4 relative z-10">
-        <p>© 2026 {nombre}. Todos los derechos reservados.</p>
-        <p class="font-mono text-slate-500">Demo Comercial Generada por Emayon Forge — Nicho Landing Factory Enterprise</p>
+
+    <!-- ========================================================================= -->
+    <!-- 2. DIVISOR COMERCIAL MARKETINERO: "IMPULSÁ TU NEGOCIO"                    -->
+    <!-- ========================================================================= -->
+    <section class="w-full bg-slate-900 border-t-2 border-b-2 border-amber-400/40 py-10 px-6 text-slate-100 shadow-2xl relative z-30">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-4 text-left">
+                <div class="w-12 h-12 rounded-2xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400 text-2xl font-bold">
+                    <i class="fa-solid fa-rocket"></i>
+                </div>
+                <div>
+                    <span class="text-xs font-mono font-bold tracking-widest text-amber-400 uppercase flex items-center gap-1.5">
+                        <i class="fa-solid fa-bolt text-[10px]"></i> Crecimiento & Automatización B2B
+                    </span>
+                    <h3 class="text-xl md:text-2xl font-extrabold text-white tracking-tight">Impulsá la Presencia Digital de {nombre} al Siguiente Nivel</h3>
+                    <p class="text-xs text-slate-300">Descubrí las capacidades enterprise y módulos avanzados desarrollados por Emayon Forge.</p>
+                </div>
+            </div>
+            <a href="#enterprise" class="px-6 py-3.5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-amber-400/20 transition-all">
+                Ver Módulos Enterprise <i class="fa-solid fa-arrow-down text-[10px]"></i>
+            </a>
+        </div>
+    </section>
+
+
+    <!-- ========================================================================= -->
+    <!-- 3. CANVAS ENTERPRISE APPLE STYLE (FONDO BLANCO LÍMPIDO CON LOGO EMAYOON)   -->
+    <!-- ========================================================================= -->
+    <section id="enterprise" class="w-full bg-white text-slate-950 py-20 px-6 relative z-20 border-b border-slate-200">
+        <div class="max-w-7xl mx-auto space-y-12">
+            
+            <!-- HEADER DE SECCIÓN CON LOGO EMAYOON FORGE -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-200 pb-8">
+                <div class="space-y-2 max-w-2xl">
+                    <div class="inline-flex items-center gap-2 text-xs font-bold uppercase font-mono tracking-widest px-3.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-300">
+                        <i class="fa-solid fa-crown text-amber-600"></i> Potencial Enterprise de {nombre}
+                    </div>
+                    <h2 class="text-3xl md:text-5xl font-black text-slate-950 tracking-tight leading-tight display-font">
+                        Módulos & Capacidades a Desbloquear
+                    </h2>
+                    <p class="text-slate-600 text-sm md:text-base leading-relaxed">
+                        Esta demo representa la base visual de tu plataforma. Al contratar tu plan oficial, podrás desbloquear estas 6 funciones avanzadas para automatizar tu negocio al 100%.
+                    </p>
+                </div>
+
+                <!-- BADGE CON LOGO OFICIAL EMAYOON FORGE Y ENLACE -->
+                <a href="https://emayonforge.com/" target="_blank" class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-200 hover:border-slate-300 transition-all group shadow-sm">
+                    <div class="w-11 h-11 rounded-xl bg-slate-950 flex items-center justify-center text-amber-400 font-bold text-2xl shadow-md group-hover:scale-105 transition-transform">
+                        ⚡
+                    </div>
+                    <div>
+                        <span class="text-xs font-black tracking-tight text-slate-950 uppercase block">EMAYON FORGE</span>
+                        <span class="text-[10px] font-mono text-slate-500 flex items-center gap-1">emayonforge.com <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i></span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- GRID DE LOS 6 MÓDULOS ENTERPRISE (ESTILO APPLE) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {enterprise_html}
+            </div>
+
+            <!-- ADQUISICIÓN RÁPIDA & GARANTÍA -->
+            <div class="p-8 rounded-3xl bg-slate-900 text-white flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl">
+                <div class="space-y-1 text-center md:text-left">
+                    <h3 class="text-xl font-bold tracking-tight">¿Listo para activar el dominio exclusivo {dominio}?</h3>
+                    <p class="text-xs text-slate-300">Incluye alta en &lt; 24hs, infraestructura Cloud y la base para integrar estos módulos enterprise.</p>
+                </div>
+                <a href="https://checkout.dlocalgo.com/v1/pay/demo-{precio}-usd" target="_blank" class="px-8 py-4 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-amber-400/20 transition-all">
+                    Adquirir Dominio (${precio} USD) <i class="fa-solid fa-cart-shopping text-xs"></i>
+                </a>
+            </div>
+
+            <!-- INFRAESTRUCTURA & SEGURIDAD -->
+            <div class="pt-8 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-6 text-xs text-slate-500">
+                <span class="font-mono font-bold tracking-widest uppercase text-slate-400">INFRAESTRUCTURA CERTIFICADA:</span>
+                <div class="flex flex-wrap items-center gap-8 font-semibold text-slate-700">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-emerald-600 text-base"></i>
+                        <span>Infraestructura Cloud SSL 99.9% Uptime</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-bolt text-amber-500 text-base"></i>
+                        <span>Despliegue e Integración por Emayon Forge</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- FOOTER B2B OFICIAL EMAYOON FORGE -->
+    <footer class="w-full bg-slate-950 text-slate-400 py-8 px-6 text-xs border-t border-slate-800">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <p>© 2026 Emayon Forge. Plataforma comercial desarrollada para <strong class="text-white">{nombre}</strong>.</p>
+            <a href="https://emayonforge.com/" target="_blank" class="text-amber-400 font-bold hover:underline flex items-center gap-1.5">
+                www.emayonforge.com <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+            </a>
+        </div>
     </footer>
 
 </body>
@@ -687,6 +820,8 @@ async def generar_demo_prospecto(place_id: str, payload: dict, db: Session = Dep
             "link_wa": link_wa or None
         }
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         print(f"[ERROR GENERAR DEMO]: {e}")
         from fastapi.responses import JSONResponse
         return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})

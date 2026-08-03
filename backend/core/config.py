@@ -13,5 +13,6 @@ class Config:
         "sqlite:///crm_factory.db"
     )
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+    GOOGLE_PLACES_API_KEY: str = os.getenv("GOOGLE_PLACES_API_KEY", "")
 
 config = Config()
