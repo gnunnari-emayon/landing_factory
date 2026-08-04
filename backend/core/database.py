@@ -14,8 +14,9 @@ if db_url.startswith("sqlite:///"):
     if not os.path.isabs(db_path):
         base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
         abs_db_path = os.path.join(base_dir, db_path)
-        db_url = f"sqlite:///{abs_db_path}"
+        db_url = f"sqlite:///{abs_db_path.replace('\\', '/')}"
     connect_args = {"check_same_thread": False, "timeout": 15.0}
+
 elif db_url.startswith("sqlite"):
     connect_args = {"check_same_thread": False, "timeout": 15.0}
 

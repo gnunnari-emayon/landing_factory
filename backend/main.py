@@ -26,6 +26,18 @@ app = FastAPI(
     version="1.0.0"
 )
 
+@app.on_event("startup")
+def startup_event():
+    """Inicializar esquema de base de datos y sembrar Superadmins gabi y gian"""
+    from backend.core.database import SessionLocal
+    from backend.services.seed_users import inicializar_superadmins
+    db = SessionLocal()
+    try:
+        inicializar_superadmins(db)
+    finally:
+        db.close()
+
+
 # Montar archivos estáticos (CSS, JS, imágenes)
 frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
 app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
@@ -195,13 +207,16 @@ async def admin_dashboard(request: Request):
 
 @app.get("/static/demos/{file_name}", response_class=HTMLResponse)
 async def ver_demo_html(file_name: str):
-    """Servir demo HTML de prospectos"""
-    demos_dir = os.path.join(frontend_dir, "demos")
-    filepath = os.path.join(demos_dir, file_name)
-    if os.path.exists(filepath):
+    """Servir demo HTML de prospectos con protección contra Path Traversal"""
+    demos_dir = os.path.abspath(os.path.join(frontend_dir, "demos"))
+    safe_filename = os.path.basename(file_name)
+    filepath = os.path.abspath(os.path.join(demos_dir, safe_filename))
+
+    if filepath.startswith(demos_dir) and os.path.exists(filepath):
         with open(filepath, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
     return HTMLResponse(content="<h1>Demo no encontrada</h1>", status_code=404)
+
 
 
 @app.post("/api/generate")
