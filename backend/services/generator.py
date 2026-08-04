@@ -3,6 +3,9 @@ from backend.models.schemas import LandingResponse
 
 # Diccionario de palabras clave por categoría visual
 CATEGORIA_KEYWORDS = {
+    "motos": [
+        "moto", "motos", "motocicleta", "motocicletas", "motomecánica", "motomecanica", "scooter"
+    ],
     "gastronomia": [
         "café", "cafe", "cafetería", "cafeteria", "bar", "restaurante", "restaurant", 
         "rotisería", "rotiseria", "comida", "pizza", "pizzería", "pizzeria", "sushi", 

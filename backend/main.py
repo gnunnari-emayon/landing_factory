@@ -424,7 +424,7 @@ async def generar_demo_prospecto(place_id: str, payload: dict = Body(default={})
         # Enriquecimiento web e integración con el motor de temas visuales
         from backend.services.landing_theme_engine import obtener_theme_config, obtener_contexto_web_empresa
         ciudad_prospecto = prospecto.get("ciudad_busqueda") if prospecto else "Rosario, AR"
-        theme = obtener_theme_config(cat_visual)
+        theme = obtener_theme_config(cat_visual, prospecto_seed=place_id)
         ctx_web = obtener_contexto_web_empresa(nombre, ciudad_prospecto)
         
         # Crear directorio de demos en frontend si no existe
@@ -441,35 +441,80 @@ async def generar_demo_prospecto(place_id: str, payload: dict = Body(default={})
         button_wa_html = f'<a href="{link_wa}" target="_blank" class="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white font-bold py-3.5 px-6 rounded-xl border border-emerald-500/30 hover:border-emerald-500 transition-all duration-200 text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/10 hover:shadow-emerald-500/20"><i class="fa-brands fa-whatsapp text-lg"></i> Consultar por WhatsApp</a>' if link_wa else ''
         nav_wa_link = link_wa if link_wa else '#'
 
-        # 1. Formatear características / servicios adaptados al rubro (Grid 6 items)
+        # 1. Formatear características en Grilla Enterprise 3x2 con asignación semántica 1:1
         features_html = ""
-        for feat in theme["features"]:
+        items_features = theme["features"][:6]
+        seed_hash = sum(ord(c) for c in place_id)
+        services_offset = seed_hash % 6
+        news_offset = (seed_hash + 3) % 6
+
+        for idx, feat in enumerate(items_features):
+            if "image_key" in feat:
+                img_path = f"/static/img/services/{feat['image_key']}.jpg"
+            else:
+                img_num = ((idx + services_offset) % 6) + 1
+                img_path = f"/static/img/services/{cat_visual}_{img_num}.jpg"
+            
             features_html += f"""
-            <div class="glass-card p-6 rounded-2xl space-y-4 group">
-                <div class="flex justify-between items-center">
-                    <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-transform duration-300 group-hover:scale-110" style="background: rgba(255,255,255,0.04); color: {theme['accent']}; border: 1px solid {theme['border']};">
-                        <i class="fa-solid {feat['icon']}"></i>
+            <div class="glass-card rounded-3xl overflow-hidden group flex flex-col justify-between transition-all duration-300 hover:-translate-y-1">
+                <div>
+                    <!-- CABECERA FOTOGRÁFICA 16:9 DEL SERVICIO SIN OVERLAY -->
+                    <div class="relative h-44 w-full overflow-hidden">
+                        <img src="{img_path}" alt="{feat['title']}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy">
+                        
+                        <!-- ICONO Y BADGE SUPERPUESTOS EN LA FOTO -->
+                        <div class="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
+                            <div class="w-10 h-10 rounded-xl backdrop-blur-md flex items-center justify-center text-lg shadow-lg" style="background: rgba(15, 23, 42, 0.85); color: {theme['accent']}; border: 1px solid {theme['border']};">
+                                <i class="fa-solid {feat['icon']}"></i>
+                            </div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full backdrop-blur-md shadow-md" style="background: rgba(15, 23, 42, 0.85); color: {theme['accent']}; border: 1px solid {theme['border']};">{feat.get('tag', 'Servicio')}</span>
+                        </div>
                     </div>
-                    <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style="background: rgba(255,255,255,0.03); color: {theme['accent']}; border: 1px solid {theme['border']};">{feat.get('tag', 'Servicio')}</span>
+
+                    <!-- CONTENIDO DE LA TARJETA -->
+                    <div class="p-6 space-y-3">
+                        <h3 class="text-lg font-bold text-white tracking-tight leading-snug display-font group-hover:text-amber-400 transition-colors">{feat['title']}</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">{feat['desc']}</p>
+                    </div>
                 </div>
-                <h3 class="text-xl font-bold text-white tracking-tight display-font">{feat['title']}</h3>
-                <p class="text-sm text-slate-400 leading-relaxed">{feat['desc']}</p>
             </div>
             """
 
-        # 2. Formatear noticias / artículos del sector (Grid 3 items)
+        # 2. Formatear novedades / noticias del sector con asignación semántica 1:1
         news_html = ""
-        for item in theme.get("news", []):
+        for idx, item in enumerate(theme.get("news", [])):
+            if "image_key" in item:
+                news_img_path = f"/static/img/news/{item['image_key']}.jpg"
+            else:
+                news_img_num = ((idx + news_offset) % 6) + 1
+                news_img_path = f"/static/img/news/{cat_visual}_news_{news_img_num}.jpg"
+            
             news_html += f"""
-            <div class="glass-card p-6 rounded-2xl space-y-4 group">
-                <div class="flex items-center justify-between text-xs text-slate-400">
-                    <span class="font-semibold text-emerald-400 flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-[9px]"></i> {item['date']}</span>
-                    <span class="font-mono text-slate-500">{item['read_time']} de lectura</span>
+            <div class="flex-none w-[88%] md:w-[31%] glass-card rounded-3xl overflow-hidden group flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 snap-start">
+                <div>
+                    <!-- CABECERA FOTOGRÁFICA 16:9 DE LA NOTICIA SIN OVERLAY -->
+                    <div class="relative h-44 w-full overflow-hidden">
+                        <img src="{news_img_path}" alt="{item['title']}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy">
+                        
+                        <div class="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
+                            <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full backdrop-blur-md shadow-md text-emerald-400" style="background: rgba(15, 23, 42, 0.85); border: 1px solid {theme['border']};">
+                                <i class="fa-solid fa-circle-check text-[9px]"></i> {item['date']}
+                            </span>
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-950/80 text-slate-300 border border-white/10 backdrop-blur-md">{item['read_time']}</span>
+                        </div>
+                    </div>
+
+                    <!-- CONTENIDO DE LA NOTICIA -->
+                    <div class="p-6 space-y-3">
+                        <h3 class="text-lg font-bold text-white group-hover:text-amber-400 transition-colors leading-snug display-font">{item['title']}</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">{item['snippet']}</p>
+                    </div>
                 </div>
-                <h3 class="text-lg font-bold text-white group-hover:text-amber-400 transition-colors leading-snug">{item['title']}</h3>
-                <p class="text-xs text-slate-400 leading-relaxed">{item['snippet']}</p>
-                <div class="pt-2">
-                    <a href="{nav_wa_link}" target="_blank" class="text-xs font-semibold inline-flex items-center gap-1.5" style="color: {theme['accent']};">Leer artículo completo <i class="fa-solid fa-arrow-right text-[10px]"></i></a>
+
+                <div class="px-6 pb-6 pt-2">
+                    <a href="{nav_wa_link}" target="_blank" class="text-xs font-semibold inline-flex items-center gap-1.5 transition-all group-hover:translate-x-1" style="color: {theme['accent']};">
+                        Leer artículo completo <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </a>
                 </div>
             </div>
             """
@@ -563,20 +608,29 @@ async def generar_demo_prospecto(place_id: str, payload: dict = Body(default={})
         .display-font {{ font-family: {theme['font_display']}; }}
         .glass-card {{ background: {theme['card_bg']}; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid {theme['border']}; box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.08); transition: all 0.25s ease; }}
         .glass-card:hover {{ border-color: {theme['border_hover']}; transform: translateY(-2px); }}
-        .hero-bg {{ background-color: {theme['bg']}; background-image: radial-gradient(800px circle at 50% -20%, {theme['glow']}, transparent 70%), radial-gradient(circle at 85% 85%, {theme['glow_secondary']}, transparent 50%); }}
-        .glow-btn {{ box-shadow: 0 10px 30px -5px {theme['glow']}; }}
-        .glow-btn:hover {{ box-shadow: 0 15px 35px -5px {theme['glow']}; transform: translateY(-1px); }}
+        .hero-banner-full {{
+            position: relative;
+            width: 100%;
+            min-height: 540px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: linear-gradient(to bottom, rgba(7, 10, 18, 0.65) 0%, rgba(7, 10, 18, 0.75) 50%, {theme['bg']} 100%), url('{theme.get("hero_image", "")}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }}
     </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between antialiased hero-bg text-slate-100" style="background-color: {theme['bg']};">
 
     <!-- EMAYOON FORGE COMMERCIAL B2B DOCK (SUPERIOR) -->
-    <div class="bg-slate-950/95 border-b border-amber-500/30 px-6 py-2.5 flex flex-wrap justify-between items-center text-xs backdrop-blur-xl z-50 sticky top-0">
-        <div class="flex items-center gap-2 font-medium">
-            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+    <div class="bg-slate-950 border-b border-amber-500/20 px-6 py-2 flex flex-wrap justify-between items-center text-xs backdrop-blur-xl z-50">
+        <div class="flex items-center gap-2.5 font-medium py-1">
+            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
             <span class="text-slate-300">Propuesta Comercial B2B por <a href="https://emayonforge.com/" target="_blank" class="text-amber-400 font-bold hover:underline">Emayon Forge</a> para <strong class="text-white">{nombre}</strong></span>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 py-1">
             <a href="#enterprise" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 shadow-md">
                 <i class="fa-solid fa-arrow-down text-xs"></i> Ver Módulos Enterprise
             </a>
@@ -587,13 +641,13 @@ async def generar_demo_prospecto(place_id: str, payload: dict = Body(default={})
     </div>
 
     <!-- STICKY NAVBAR PÚBLICO DEL CLIENTE -->
-    <header class="sticky top-[41px] z-40 backdrop-blur-xl border-b border-white/5 bg-slate-950/80">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <header class="sticky top-0 z-40 backdrop-blur-xl border-b border-white/5 bg-slate-950/90 shadow-lg">
+        <div class="max-w-7xl mx-auto px-6 py-3.5 flex justify-between items-center">
             <a href="#hero" class="flex items-center gap-3 group">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shadow-lg transition-transform group-hover:scale-105" style="background-color: {theme['accent']};">
-                    <i class="fa-solid fa-briefcase"></i>
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-white shadow-lg transition-transform group-hover:scale-105" style="background-color: {theme['accent']};">
+                    <i class="fa-solid fa-briefcase text-sm"></i>
                 </div>
-                <span class="text-lg font-bold text-white tracking-tight display-font">{nombre}</span>
+                <span class="text-base md:text-lg font-bold text-white tracking-tight display-font">{nombre}</span>
             </a>
 
             <!-- NAV LINKS PÚBLICOS -->
@@ -606,36 +660,90 @@ async def generar_demo_prospecto(place_id: str, payload: dict = Body(default={})
             </nav>
 
             <div class="flex items-center gap-3">
-                <a href="{nav_wa_link}" target="_blank" class="text-xs bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white font-bold px-4.5 py-2.5 rounded-xl transition-all duration-200 border border-emerald-500/30 hover:border-emerald-500 flex items-center gap-1.5 shadow-sm">
+                <a href="{nav_wa_link}" target="_blank" class="text-xs bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white font-bold px-3.5 py-2 rounded-xl transition-all duration-200 border border-emerald-500/30 hover:border-emerald-500 flex items-center gap-1.5 shadow-sm whitespace-nowrap">
                     <i class="fa-brands fa-whatsapp text-sm"></i> Contactar
                 </a>
             </div>
         </div>
     </header>
 
-    <!-- 1. PARTE PÚBLICA: LANDING PAGE DEL CLIENTE -->
-    <main class="max-w-7xl mx-auto w-full px-6 py-16 space-y-24 relative z-10" id="hero">
-        <section class="text-center space-y-6 max-w-4xl mx-auto pt-4">
-            <div class="inline-flex flex-wrap justify-center items-center gap-3 text-xs px-4 py-2 rounded-full font-medium shadow-sm" style="background: rgba(255,255,255,0.03); border: 1px solid {theme['border']}; color: {theme['accent']};">
-                <span class="flex items-center gap-1.5 text-emerald-400 font-bold"><i class="fa-solid fa-circle text-[8px]"></i> Atendiendo en {ciudad_prospecto}</span>
-                <span class="text-slate-600">•</span>
-                <span><i class="fa-solid fa-star text-amber-400"></i> 4.9 (Google Reviews)</span>
-                <span class="text-slate-600">•</span>
-                <span>{theme['badge']}</span>
+    <!-- 1. PARTE PÚBLICA: LANDING PAGE DEL CLIENTE (HERO SPLIT 2-COLUMNS BANNER) -->
+    <section class="hero-banner-full py-20 md:py-28 px-6 w-full" id="hero">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center relative z-10">
+            
+            <!-- COLUMNA IZQUIERDA: MENSAJE PRINCIPAL & IDENTIDAD DEL CLIENTE -->
+            <div class="lg:col-span-7 space-y-6 text-left">
+                
+                <!-- EYEBROW / PILL ENTERPRISE REDISEÑADO CON ALTO CONTRASTE -->
+                <div class="inline-flex flex-wrap items-center gap-2.5 text-xs px-4 py-2 rounded-full font-medium shadow-xl bg-slate-900/90 border border-white/10 text-slate-200 backdrop-blur-md">
+                    <span class="flex items-center gap-1.5 text-emerald-400 font-semibold"><i class="fa-solid fa-location-dot text-xs"></i> {ciudad_prospecto.split(',')[0]}</span>
+                    <span class="text-slate-600">•</span>
+                    <span class="flex items-center gap-1 text-amber-400 font-semibold"><i class="fa-solid fa-star text-xs"></i> 4.9 (Google Reviews)</span>
+                    <span class="text-slate-600">•</span>
+                    <span class="text-slate-300 font-medium">{theme['badge']}</span>
+                </div>
+                
+                <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight tracking-tight display-font drop-shadow-2xl">
+                    <span class="bg-gradient-to-r {theme['accent_gradient']} bg-clip-text text-transparent">{nombre}</span>
+                </h1>
+                
+                <p class="text-slate-200 text-base md:text-lg font-normal leading-relaxed max-w-2xl text-shadow">
+                    {ctx_web['resumen_web']}
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 pt-2">
+                    <a href="#contacto" class="text-white font-bold py-4 px-8 rounded-xl transition-all duration-200 text-sm flex items-center justify-center gap-2 glow-btn shadow-xl" style="background-color: {theme['accent']};">
+                        <i class="fa-solid fa-calendar-check"></i> {theme.get('cta_text', 'Consultar Ahora')}
+                    </a>
+                    {button_wa_html}
+                </div>
             </div>
-            <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight tracking-tight display-font">
-                Impulsamos la presencia digital de <span class="bg-gradient-to-r {theme['accent_gradient']} bg-clip-text text-transparent">{nombre}</span>
-            </h1>
-            <p class="text-slate-300 text-base md:text-lg leading-relaxed max-w-3xl mx-auto">
-                {ctx_web['resumen_web']}
-            </p>
-            <div class="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-                <a href="#contacto" class="text-white font-bold py-4 px-8 rounded-xl transition-all duration-200 text-sm flex items-center justify-center gap-2 glow-btn" style="background-color: {theme['accent']};">
-                    <i class="fa-solid fa-calendar-check"></i> Consultar Ahora
-                </a>
-                {button_wa_html}
+
+            <!-- COLUMNA DERECHA: CARD FLOTANTE GLASSMORPHIC DE ACCIÓN RÁPIDA -->
+            <div class="lg:col-span-5">
+                <div class="glass-card p-7 rounded-3xl space-y-6 shadow-2xl backdrop-blur-2xl border border-white/15" style="background: rgba(15, 23, 42, 0.85);">
+                    <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 text-lg">
+                                <i class="fa-solid fa-clock font-bold"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-white uppercase tracking-wider">Atención Directa</div>
+                                <div class="text-[11px] text-emerald-400 flex items-center gap-1 font-medium"><i class="fa-solid fa-circle text-[6px]"></i> Respuesta Inmediata</div>
+                            </div>
+                        </div>
+                        <span class="text-[11px] font-semibold px-3 py-1 rounded-full bg-white/5 text-slate-200 border border-white/10">{ciudad_prospecto.split(',')[0]}</span>
+                    </div>
+
+                    <div class="space-y-3 text-xs text-slate-300">
+                        <div class="flex items-start gap-3">
+                            <i class="fa-solid fa-calendar-days text-amber-400 w-5 text-center text-sm pt-0.5"></i>
+                            <div>
+                                <strong class="text-white block font-semibold">Horarios de Atención:</strong>
+                                <span>{theme.get('hours', 'Lunes a Viernes 08:30 - 19:30 hs')}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fa-solid fa-shield-halved text-sky-400 w-5 text-center text-sm pt-0.5"></i>
+                            <div>
+                                <strong class="text-white block font-semibold">Calidad Garantizada:</strong>
+                                <span>Diagnóstico, profesionalismo y atención personalizada.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <a href="{nav_wa_link}" target="_blank" class="w-full text-white font-bold py-3.5 px-6 rounded-xl transition-all duration-200 text-xs flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-900/30">
+                            <i class="fa-brands fa-whatsapp text-base"></i> Consultar por WhatsApp
+                        </a>
+                    </div>
+                </div>
             </div>
-        </section>
+
+        </div>
+    </section>
+
+    <main class="max-w-7xl mx-auto w-full px-6 py-16 space-y-24 relative z-10">
 
         <!-- SECCIÓN 1: SERVICIOS & ESPECIALIDADES DEL CLIENTE -->
         <section id="servicios" class="space-y-8">
@@ -649,14 +757,28 @@ async def generar_demo_prospecto(place_id: str, payload: dict = Body(default={})
             </div>
         </section>
 
-        <!-- SECCIÓN 2: NOVEDADES & NOTICIAS DEL SECTOR -->
+        <!-- SECCIÓN 2: NOVEDADES & NOTICIAS DEL SECTOR (CARROUSEL INTERACTIVO) -->
         <section id="noticias" class="space-y-8">
-            <div class="text-center space-y-2">
-                <span class="text-xs font-bold uppercase font-mono tracking-widest text-slate-400">Actualidad & Contenido</span>
-                <h2 class="text-3xl font-extrabold text-white tracking-tight display-font">Novedades & Noticias del Sector</h2>
-                <p class="text-sm text-slate-400 max-w-xl mx-auto">Información de interés, tendencias y recomendaciones preparadas por nuestro equipo.</p>
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div class="space-y-2 text-left">
+                    <span class="text-xs font-bold uppercase font-mono tracking-widest text-slate-400">Actualidad & Contenido</span>
+                    <h2 class="text-3xl font-extrabold text-white tracking-tight display-font">Novedades & Noticias del Sector</h2>
+                    <p class="text-sm text-slate-400 max-w-xl">Información de interés, tendencias y recomendaciones preparadas por nuestro equipo.</p>
+                </div>
+                
+                <!-- BOTONES DE NAVEGACIÓN DEL CARROUSEL -->
+                <div class="flex items-center gap-3">
+                    <button onclick="document.getElementById('news-carousel').scrollBy({{left: -350, behavior: 'smooth'}})" class="w-10 h-10 rounded-full bg-slate-900/90 hover:bg-slate-800 border border-white/10 text-white flex items-center justify-center transition-all shadow-md active:scale-95">
+                        <i class="fa-solid fa-chevron-left text-xs"></i>
+                    </button>
+                    <button onclick="document.getElementById('news-carousel').scrollBy({{left: 350, behavior: 'smooth'}})" class="w-10 h-10 rounded-full bg-slate-900/90 hover:bg-slate-800 border border-white/10 text-white flex items-center justify-center transition-all shadow-md active:scale-95">
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <!-- CONTENEDOR SLIDER CON SNAP SCROLL & HIDE SCROLLBAR -->
+            <div id="news-carousel" class="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 pt-1 no-scrollbar" style="scrollbar-width: none; -ms-overflow-style: none;">
                 {news_html}
             </div>
         </section>
@@ -665,30 +787,71 @@ async def generar_demo_prospecto(place_id: str, payload: dict = Body(default={})
 
         <!-- SECCIÓN 5: UBICACIÓN & HORARIOS -->
         <section id="contacto" class="glass-card p-8 md:p-10 rounded-3xl relative overflow-hidden">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                <div class="space-y-6">
-                    <span class="text-xs font-bold uppercase font-mono tracking-widest text-emerald-400 flex items-center gap-2">
-                        <i class="fa-solid fa-location-dot"></i> Ubicación & Atención Directa
-                    </span>
-                    <h2 class="text-3xl font-extrabold text-white tracking-tight display-font">Atención Presencial & Canales Oficiales en {ciudad_prospecto}</h2>
-                    <p class="text-sm text-slate-300 leading-relaxed">
-                        Estamos comprometidos a brindar respuestas rápidas y asesoría transparente. Contáctanos por nuestro canal directo o solicita una reunión comercial.
-                    </p>
-                    <div class="space-y-3 text-xs text-slate-300">
-                        <div class="flex items-center gap-3"><i class="fa-solid fa-clock text-amber-400 w-5 text-center"></i> <span><strong>Horarios:</strong> {theme.get('hours', 'Lunes a Viernes 09:00 - 18:00 hs')}</span></div>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+                <!-- Columna Izquierda: Información de Atención & Canales -->
+                <div class="lg:col-span-6 space-y-6 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <span class="text-xs font-bold uppercase font-mono tracking-widest text-emerald-400 flex items-center gap-2">
+                            <i class="fa-solid fa-location-dot"></i> Ubicación & Atención Directa
+                        </span>
+                        <h2 class="text-3xl font-extrabold text-white tracking-tight display-font">Atención Presencial & Canales Oficiales en {ciudad_prospecto}</h2>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            Estamos comprometidos a brindar respuestas rápidas y asesoría transparente. Contáctanos por nuestro canal directo o solicita una reunión comercial.
+                        </p>
+                    </div>
+
+                    <div class="space-y-3 text-xs text-slate-300 bg-slate-900/40 p-4 rounded-xl border border-white/5">
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-clock text-amber-400 w-5 text-center"></i> <span><strong>Horarios:</strong> {theme.get('hours', 'Lunes a Sábados 09:00 - 20:00 hs')}</span></div>
                         <div class="flex items-center gap-3"><i class="fa-solid fa-map-location-dot text-sky-400 w-5 text-center"></i> <span><strong>Ciudad:</strong> {ciudad_prospecto}</span></div>
                         <div class="flex items-center gap-3"><i class="fa-solid fa-globe text-indigo-400 w-5 text-center"></i> <span><strong>Dominio Exclusivo:</strong> {dominio}</span></div>
                     </div>
-                </div>
-                <div class="glass-card p-6 rounded-2xl text-center space-y-4 border border-white/10" style="background: rgba(0,0,0,0.2);">
-                    <div class="w-12 h-12 mx-auto rounded-full flex items-center justify-center text-xl text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
-                        <i class="fa-solid fa-headset"></i>
+
+                    <!-- Tarjeta WhatsApp Integrada -->
+                    <div class="glass-card p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-white/10" style="background: rgba(0,0,0,0.25);">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 shrink-0">
+                                <i class="fa-solid fa-headset"></i>
+                            </div>
+                            <div class="text-left">
+                                <h3 class="text-sm font-bold text-white display-font">¿Dudas sobre el servicio?</h3>
+                                <p class="text-[11px] text-slate-400">Atención directa con nuestro equipo.</p>
+                            </div>
+                        </div>
+                        <a href="{nav_wa_link}" target="_blank" class="w-full sm:w-auto text-white font-bold py-2.5 px-5 rounded-xl transition-all duration-200 text-xs flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-900/30 whitespace-nowrap">
+                            <i class="fa-brands fa-whatsapp text-sm"></i> Iniciar Chat
+                        </a>
                     </div>
-                    <h3 class="text-xl font-bold text-white display-font">¿Dudas sobre el servicio?</h3>
-                    <p class="text-xs text-slate-400 leading-relaxed">Ponte en contacto directo con nuestro equipo de atención.</p>
-                    <a href="{nav_wa_link}" target="_blank" class="w-full text-white font-bold py-3.5 px-6 rounded-xl transition-all duration-200 text-xs flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-900/30">
-                        <i class="fa-brands fa-whatsapp text-base"></i> Iniciar Chat en WhatsApp
-                    </a>
+                </div>
+
+                <!-- Columna Derecha: Mapa Interactivo Dark -->
+                <div class="lg:col-span-6 flex flex-col">
+                    <div class="map-frame-wrapper relative w-full h-full min-h-[320px] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-slate-950 group">
+                        <!-- Google Maps Iframe con filtro dark -->
+                        <iframe 
+                            class="w-full h-full min-h-[320px] border-0 filter invert-[90%] hue-rotate-180 contrast-[120%] grayscale-[20%] transition-all duration-500 group-hover:filter-none"
+                            src="https://maps.google.com/maps?q={ciudad_prospecto}&t=&z=13&ie=UTF8&iwloc=&output=embed"
+                            allowfullscreen="" 
+                            loading="lazy" 
+                            referrerpolicy="no-referrer-when-downgrade">
+                        </iframe>
+
+                        <!-- Pin de Ubicación con animación de pulso -->
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10 flex flex-col items-center">
+                            <div class="w-4 h-4 bg-emerald-400 rounded-full shadow-[0_0_12px_#00c885] animate-ping opacity-75"></div>
+                            <div class="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_8px_#00c885] -mt-3"></div>
+                        </div>
+
+                        <!-- Overlay Glassmorphism con botón 'Abrir Mapa' -->
+                        <div class="absolute bottom-4 left-4 right-4 p-3 rounded-xl bg-slate-900/80 backdrop-blur-md border border-white/10 flex items-center justify-between z-20 shadow-lg">
+                            <div class="flex items-center gap-2 text-xs text-white font-medium">
+                                <i class="fa-solid fa-compass text-emerald-400"></i>
+                                <span>{ciudad_prospecto}</span>
+                            </div>
+                            <a href="https://maps.google.com/?q={ciudad_prospecto}" target="_blank" class="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors">
+                                Abrir en Google Maps <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
