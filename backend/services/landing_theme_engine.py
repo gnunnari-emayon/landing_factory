@@ -3,6 +3,63 @@ import urllib.parse
 import json
 import re
 
+DEFAULT_PRICING_PLANS = [
+    {
+        "id": "inicial",
+        "name": "Plan Presencia Digital",
+        "badge": "Inicio Rápido",
+        "price": "49",
+        "period": "USD / mes",
+        "desc": "Ideal para negocios que buscan establecer su presencia oficial en internet con diseño profesional de alta conversión.",
+        "highlighted": False,
+        "cta": "Solicitar Plan Presencia",
+        "features": [
+            "Landing Page profesional con navegación interactiva",
+            "Integración de Mapas (Google Maps / Ubicación real)",
+            "Galería de imágenes & estética responsive de alta velocidad",
+            "Optimización SEO básico & Alta en motores de búsqueda",
+            "Dominio propio .com (a convenir) + SSL Enterprise",
+            "Formulario directo y botón flotante de WhatsApp"
+        ]
+    },
+    {
+        "id": "avanzado",
+        "name": "Plan Gestión & Growth",
+        "badge": "MÁS POPULAR",
+        "price": "79",
+        "period": "USD / mes",
+        "desc": "La solución completa para automatizar reservas, captar clientes y gestionar prospectos sin complicaciones.",
+        "highlighted": True,
+        "cta": "Solicitar Plan Avanzado",
+        "features": [
+            "Todo lo incluido en el Plan Presencia Digital",
+            "Sistema autogestionable de contenido (CMS)",
+            "CRM Integrado & Gestión automatizada de Leads",
+            "Motor de Reservas & Agendamiento de Turnos Online 24/7",
+            "Sincronización de calendarios y recordatorios por WhatsApp",
+            "Soporte técnico prioritario y copias de seguridad continuas"
+        ]
+    },
+    {
+        "id": "enterprise",
+        "name": "Plan Enterprise & IA",
+        "badge": "Solución Integral",
+        "price": "119",
+        "period": "USD / mes",
+        "desc": "Potencia máxima con Agentes de Inteligencia Artificial 24/7, cobros online y analítica predictiva de negocio.",
+        "highlighted": False,
+        "cta": "Solicitar Plan Enterprise",
+        "features": [
+            "Todo lo incluido en el Plan Gestión & Growth",
+            "Agente de IA 24/7 en WhatsApp (atención y ventas en automático)",
+            "Pasarela de Cobros Online Integrada (MercadoPago / DLocal / Tarjetas)",
+            "Panel de Analítica Avanzada & Gráficos de crecimiento comercial",
+            "Estudio de mercado automatizado y reportes de comportamiento",
+            "Infraestructura CDN dedicada + Correos corporativos (@tudominio.com)"
+        ]
+    }
+]
+
 DEFAULT_ENTERPRISE_MODULES = [
     {
         "id": "pagos_online",
@@ -466,6 +523,7 @@ def obtener_theme_config(categoria: str, prospecto_seed: str = None) -> dict:
     cat_clean = categoria.lower().strip() if categoria else "corporativo"
     theme = THEMES_POR_CATEGORIA.get(cat_clean, THEMES_POR_CATEGORIA["corporativo"]).copy()
     theme["enterprise_modules"] = DEFAULT_ENTERPRISE_MODULES
+    theme["pricing_plans"] = DEFAULT_PRICING_PLANS
     
     # Pool de 3 imágenes por rubro
     image_pool = {

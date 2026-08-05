@@ -579,29 +579,58 @@ async def generar_demo_prospecto(place_id: str, payload: dict = Body(default={})
             """
             nav_reviews_link_html = '<a href="#reseñas" class="hover:text-white transition-colors">Opiniones</a>'
 
-        # 4. Formatear los 6 Módulos Enterprise en tarjetas Apple-Style (Canvas Blanco)
-        enterprise_html = ""
-        for mod in theme.get("enterprise_modules", []):
-            enterprise_html += f"""
-            <div class="bg-slate-50 p-7 rounded-3xl space-y-4 border border-slate-200 hover:border-slate-400 hover:shadow-xl transition-all duration-300 relative group flex flex-col justify-between">
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between">
-                        <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-xl text-slate-900 shadow-sm border border-slate-200">
-                            <i class="fa-solid {mod['icon']}"></i>
-                        </div>
-                        <span class="text-[10px] font-bold tracking-wider uppercase px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200 flex items-center gap-1">
-                            <i class="fa-solid fa-lock text-[9px]"></i> Módulo A Desbloquear
-                        </span>
-                    </div>
-                    <div>
-                        <span class="text-[10px] text-slate-500 uppercase font-mono font-bold tracking-wider">{mod['tag']}</span>
-                        <h3 class="text-xl font-bold text-slate-950 tracking-tight mt-0.5">{mod['title']}</h3>
-                    </div>
-                    <p class="text-xs text-slate-600 leading-relaxed">{mod['desc']}</p>
+        # 4. Formatear los 3 Planes de Suscripción en Tarjetas SaaS Premium (Canvas Blanco)
+        pricing_plans_html = ""
+        for plan in theme.get("pricing_plans", []):
+            is_popular = plan.get("highlighted", False)
+            card_border = "border-amber-400 border-2 shadow-2xl relative md:-translate-y-2 z-10 bg-slate-950 text-white" if is_popular else "border-slate-200 bg-slate-50 text-slate-950 hover:border-slate-300 hover:shadow-xl transition-all duration-300 relative"
+            badge_html = ""
+            if is_popular:
+                badge_html = """
+                <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-[10px] uppercase tracking-widest shadow-lg flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-crown text-[10px]"></i> MÁS POPULAR
                 </div>
-                <div class="pt-4 border-t border-slate-200">
-                    <a href="{nav_wa_link}" target="_blank" class="w-full text-xs font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all bg-slate-950 hover:bg-slate-800 text-white shadow-md">
-                        <i class="fa-solid fa-key text-[10px]"></i> Solicitar Activación de Módulo
+                """
+            
+            features_list_html = ""
+            for feat in plan.get("features", []):
+                icon_bg = "bg-amber-400/20 text-amber-400" if is_popular else "bg-emerald-100 text-emerald-700"
+                text_color = "text-slate-200" if is_popular else "text-slate-700"
+                features_list_html += f"""
+                <li class="flex items-start gap-3 text-xs leading-relaxed {text_color}">
+                    <span class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 font-bold {icon_bg}">
+                        <i class="fa-solid fa-check text-[10px]"></i>
+                    </span>
+                    <span>{feat}</span>
+                </li>
+                """
+            
+            cta_bg = "bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold shadow-lg shadow-amber-400/20" if is_popular else "bg-slate-950 hover:bg-slate-800 text-white font-bold"
+            
+            pricing_plans_html += f"""
+            <div class="{card_border} p-8 rounded-3xl flex flex-col justify-between space-y-6">
+                {badge_html}
+                <div class="space-y-5">
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-mono font-bold uppercase tracking-widest {'text-amber-400' if is_popular else 'text-slate-500'}">{plan.get('badge', '')}</span>
+                        <h3 class="text-2xl font-black tracking-tight display-font">{plan['name']}</h3>
+                        <p class="text-xs {'text-slate-300' if is_popular else 'text-slate-600'} leading-relaxed pt-1">{plan['desc']}</p>
+                    </div>
+                    
+                    <div class="py-4 border-y {'border-slate-800' if is_popular else 'border-slate-200'} flex items-baseline gap-1.5">
+                        <span class="text-4xl font-black tracking-tight">${plan['price']}</span>
+                        <span class="text-xs font-semibold {'text-slate-400' if is_popular else 'text-slate-500'}">{plan['period']}</span>
+                    </div>
+
+                    <ul class="space-y-3 pt-2">
+                        {features_list_html}
+                    </ul>
+                </div>
+
+                <div class="pt-4">
+                    <a href="{nav_wa_link}" target="_blank" class="w-full py-3.5 px-5 rounded-xl text-xs flex items-center justify-center gap-2 transition-all {cta_bg}">
+                        <span>{plan['cta']}</span>
+                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
                     </a>
                 </div>
             </div>
@@ -647,7 +676,7 @@ async def generar_demo_prospecto(place_id: str, payload: dict = Body(default={})
         </div>
         <div class="flex items-center gap-3 py-1">
             <a href="#enterprise" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 shadow-md">
-                <i class="fa-solid fa-arrow-down text-xs"></i> Ver Módulos Enterprise
+                <i class="fa-solid fa-arrow-down text-xs"></i> Ver Planes Oficiales
             </a>
             <a href="https://emayonforge.com/" target="_blank" class="text-slate-400 hover:text-white transition-colors flex items-center gap-1 text-[11px]">
                 emayonforge.com <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
@@ -898,11 +927,11 @@ async def generar_demo_prospecto(place_id: str, payload: dict = Body(default={})
                         <i class="fa-solid fa-bolt text-[10px]"></i> Crecimiento & Automatización B2B
                     </span>
                     <h3 class="text-xl md:text-2xl font-extrabold text-white tracking-tight">Impulsá la Presencia Digital de {nombre} al Siguiente Nivel</h3>
-                    <p class="text-xs text-slate-300">Descubrí las capacidades enterprise y módulos avanzados desarrollados por Emayon Forge.</p>
+                    <p class="text-xs text-slate-300">Descubrí nuestros planes de suscripción y soluciones a la medida desarrollados por Emayon Forge.</p>
                 </div>
             </div>
             <a href="#enterprise" class="px-6 py-3.5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-amber-400/20 transition-all">
-                Ver Módulos Enterprise <i class="fa-solid fa-arrow-down text-[10px]"></i>
+                Ver Planes Oficiales <i class="fa-solid fa-arrow-down text-[10px]"></i>
             </a>
         </div>
     </section>
@@ -918,13 +947,13 @@ async def generar_demo_prospecto(place_id: str, payload: dict = Body(default={})
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-200 pb-8">
                 <div class="space-y-2 max-w-2xl">
                     <div class="inline-flex items-center gap-2 text-xs font-bold uppercase font-mono tracking-widest px-3.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-300">
-                        <i class="fa-solid fa-crown text-amber-600"></i> Potencial Enterprise de {nombre}
+                        <i class="fa-solid fa-crown text-amber-600"></i> Propuesta Comercial & Planes Oficiales
                     </div>
                     <h2 class="text-3xl md:text-5xl font-black text-slate-950 tracking-tight leading-tight display-font">
-                        Módulos & Capacidades a Desbloquear
+                        Planes & Soluciones a la Medida
                     </h2>
                     <p class="text-slate-600 text-sm md:text-base leading-relaxed">
-                        Esta demo representa la base visual de tu plataforma. Al contratar tu plan oficial, podrás desbloquear estas 6 funciones avanzadas para automatizar tu negocio al 100%.
+                        Elegí el plan ideal para escalar la presencia y automatización de tu negocio. Todos los planes incluyen la implementación de tu sitio web profesional en menos de 24 horas.
                     </p>
                 </div>
 
@@ -940,9 +969,9 @@ async def generar_demo_prospecto(place_id: str, payload: dict = Body(default={})
                 </a>
             </div>
 
-            <!-- GRID DE LOS 6 MÓDULOS ENTERPRISE (ESTILO APPLE) -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {enterprise_html}
+            <!-- GRID DE LOS 3 PLANES DE SUSCRIPCIÓN (ESTILO SAAS / APPLE) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch pt-4">
+                {pricing_plans_html}
             </div>
 
             <!-- ADQUISICIÓN RÁPIDA & GARANTÍA -->
