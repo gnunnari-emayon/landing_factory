@@ -7,19 +7,19 @@ DEFAULT_PRICING_PLANS = [
     {
         "id": "inicial",
         "name": "Plan Presencia Digital",
-        "badge": "Inicio Rápido",
+        "badge": "Fase 1: Presencia Oficial",
         "price": "49",
         "period": "USD / mes",
-        "desc": "Ideal para negocios que buscan establecer su presencia oficial en internet con diseño profesional de alta conversión.",
+        "desc": "Establecé la presencia web oficial de tu centro de salud con infraestructura de alta velocidad y reputación médica.",
         "highlighted": False,
         "cta": "Solicitar Plan Presencia",
         "features": [
-            "Landing Page profesional con navegación interactiva",
-            "Integración de Mapas (Google Maps / Ubicación real)",
-            "Galería de imágenes & estética responsive de alta velocidad",
-            "Optimización SEO básico & Alta en motores de búsqueda",
-            "Dominio propio .com (a convenir) + SSL Enterprise",
-            "Formulario directo y botón flotante de WhatsApp"
+            "Sitio Web Oficial & Portal de Especialidades",
+            "Ubicación interactiva e integración con Google Maps",
+            "Diseño de alta velocidad optimizado para móviles",
+            "SEO local para posicionamiento en la región",
+            "Dominio exclusivo .com + Certificado SSL Enterprise",
+            "Canal directo de contacto y botón flotante de WhatsApp"
         ]
     },
     {
@@ -28,34 +28,34 @@ DEFAULT_PRICING_PLANS = [
         "badge": "MÁS POPULAR",
         "price": "79",
         "period": "USD / mes",
-        "desc": "La solución completa para automatizar reservas, captar clientes y gestionar prospectos sin complicaciones.",
+        "desc": "Solución integral para automatizar reservas de turnos, reducir el ausentismo y gestionar pacientes eficientemente.",
         "highlighted": True,
-        "cta": "Solicitar Plan Avanzado",
+        "cta": "Solicitar Plan Gestión",
         "features": [
             "Todo lo incluido en el Plan Presencia Digital",
-            "Sistema autogestionable de contenido (CMS)",
-            "CRM Integrado & Gestión automatizada de Leads",
-            "Motor de Reservas & Agendamiento de Turnos Online 24/7",
-            "Sincronización de calendarios y recordatorios por WhatsApp",
-            "Soporte técnico prioritario y copias de seguridad continuas"
+            "Motor autogestionable de servicios y novedades (CMS)",
+            "Gestión automatizada de turnos e integración con agenda",
+            "Recordatorios automáticos por WhatsApp para reducir ausentismo",
+            "CRM de prospectos y panel de administración",
+            "Soporte técnico prioritariso y copias de seguridad continuas"
         ]
     },
     {
         "id": "enterprise",
         "name": "Plan Enterprise & IA",
-        "badge": "Solución Integral",
+        "badge": "Solución a Medida",
         "price": "119",
         "period": "USD / mes",
-        "desc": "Potencia máxima con Agentes de Inteligencia Artificial 24/7, cobros online y analítica predictiva de negocio.",
+        "desc": "Potencia máxima con Agentes de IA 24/7 en WhatsApp, integraciones personalizadas y acompañamiento humano dedicado.",
         "highlighted": False,
         "cta": "Solicitar Plan Enterprise",
         "features": [
             "Todo lo incluido en el Plan Gestión & Growth",
-            "Agente de IA 24/7 en WhatsApp (atención y ventas en automático)",
-            "Pasarela de Cobros Online Integrada (MercadoPago / DLocal / Tarjetas)",
-            "Panel de Analítica Avanzada & Gráficos de crecimiento comercial",
-            "Estudio de mercado automatizado y reportes de comportamiento",
-            "Infraestructura CDN dedicada + Correos corporativos (@tudominio.com)"
+            "Agente de IA 24/7 en WhatsApp para recepción y agendamiento",
+            "Integraciones a medida con sistemas HIS/EHR y Obras Sociales",
+            "Capacitación presencial/remota para el personal administrativo",
+            "Panel de analítica avanzada y métricas operativas",
+            "Infraestructura dedicada + Soporte prioritario SLA 24/7"
         ]
     }
 ]
