@@ -116,50 +116,53 @@
       </div>
     </div>
 
-    <table class="data-table" id="prospects-table">
-      <thead>
-        <tr>
-          <th>Empresa</th>
-          <th>Rubro / Categoría</th>
-          <th>Ciudad / Ubicación</th>
-          <th>Contacto</th>
-          <th>Fecha Búsqueda</th>
-          <th>Presencia Web</th>
-          <th style="text-align: right;">Acción</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in items %}
-        <tr class="prospect-row">
-          <td style="font-weight: 600; color: #fff;" class="col-nombre">{{ p.nombre }}</td>
-          <td class="col-rubro">
-            <span class="badge badge-tecnologia">{{ p.tipo_busqueda or 'Servicios' }}</span>
-          </td>
-          <td class="text-muted col-ciudad">{{ p.ciudad_busqueda or 'Rosario, AR' }}</td>
-          <td class="text-accent col-contacto">{{ p.whatsapp or p.telefono or 'Sin teléfono' }}</td>
-          <td class="text-muted" style="font-family: monospace;">{{ p.created_at[:10] if p.created_at else 'Reciente' }}</td>
-          <td>
-            {% if p.sitio_web %}
-              <span class="badge badge-tecnologia">Con Sitio Web</span>
-            {% else %}
-              <span class="badge badge-gastronomia">Sin Sitio Web 🔥</span>
-            {% endif %}
-          </td>
-          <td style="text-align: right; display: flex; gap: 0.5rem; justify-content: flex-end; align-items: center;">
-            <a href="/static/demos/{{ p.place_id }}.html?v={{ p.created_at[:10] if p.created_at else '1' }}" target="_blank" class="btn btn-action text-accent" style="text-decoration: none; border: 1px solid rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.1);">
-              <i class="fa-solid fa-eye" style="color: #38bdf8;"></i> Ver Demo ↗
-            </a>
-            <button 
-              type="button"
-              onclick="abrirModalDemo('{{ p.place_id }}', '{{ p.nombre|replace("\'", "") }}')" 
-              class="btn btn-primary btn-action">
-              <i class="fa-solid fa-wand-magic-sparkles"></i> Configurar Oferta
-            </button>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <!-- Wrapper responsive para scroll horizontal en pantallas móviles -->
+    <div style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--radius-md);">
+      <table class="data-table" id="prospects-table" style="min-width: 720px;">
+        <thead>
+          <tr>
+            <th>Empresa</th>
+            <th>Rubro / Categoría</th>
+            <th>Ciudad / Ubicación</th>
+            <th>Contacto</th>
+            <th>Fecha Búsqueda</th>
+            <th>Presencia Web</th>
+            <th style="text-align: right;">Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in items %}
+          <tr class="prospect-row">
+            <td style="font-weight: 600; color: #fff;" class="col-nombre">{{ p.nombre }}</td>
+            <td class="col-rubro">
+              <span class="badge badge-tecnologia">{{ p.tipo_busqueda or 'Servicios' }}</span>
+            </td>
+            <td class="text-muted col-ciudad">{{ p.ciudad_busqueda or 'Rosario, AR' }}</td>
+            <td class="text-accent col-contacto">{{ p.whatsapp or p.telefono or 'Sin teléfono' }}</td>
+            <td class="text-muted" style="font-family: monospace;">{{ p.created_at[:10] if p.created_at else 'Reciente' }}</td>
+            <td>
+              {% if p.sitio_web %}
+                <span class="badge badge-tecnologia">Con Sitio Web</span>
+              {% else %}
+                <span class="badge badge-gastronomia">Sin Sitio Web 🔥</span>
+              {% endif %}
+            </td>
+            <td style="text-align: right; display: flex; gap: 0.5rem; justify-content: flex-end; align-items: center;">
+              <a href="/static/demos/{{ p.place_id }}.html?v={{ p.created_at[:10] if p.created_at else '1' }}" target="_blank" class="btn btn-action text-accent" style="text-decoration: none; border: 1px solid rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.1);">
+                <i class="fa-solid fa-eye" style="color: #38bdf8;"></i> Ver Demo ↗
+              </a>
+              <button 
+                type="button"
+                onclick="abrirModalDemo('{{ p.place_id }}', '{{ p.nombre|replace("\'", "") }}')" 
+                class="btn btn-primary btn-action">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Configurar Oferta
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
