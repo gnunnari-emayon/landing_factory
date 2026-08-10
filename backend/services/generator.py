@@ -1,49 +1,7 @@
 import re
 from backend.models.schemas import LandingResponse
+from backend.domain.rubros import CATEGORIA_KEYWORDS
 
-# Diccionario de palabras clave por categoría visual
-CATEGORIA_KEYWORDS = {
-    "motos": [
-        "moto", "motos", "motocicleta", "motocicletas", "motomecánica", "motomecanica", "scooter"
-    ],
-    "gastronomia": [
-        "café", "cafe", "cafetería", "cafeteria", "bar", "restaurante", "restaurant", 
-        "rotisería", "rotiseria", "comida", "pizza", "pizzería", "pizzeria", "sushi", 
-        "panadería", "panaderia", "heladería", "heladeria", "parrilla", "bistro", "catering", "gastronomia"
-    ],
-    "automotriz": [
-        "taller", "mecánico", "mecanico", "auto", "autos", "automotor", "repuestos", 
-        "lavadero", "gomería", "gomeria", "lubricentro", "concesionaria", "chapa", "pintura"
-    ],
-    "salud_belleza": [
-        "clínica", "clinica", "odontología", "odontologia", "dental", "médico", "medico", 
-        "medicina", "estética", "estetica", "spa", "peluquería", "peluqueria", "barbería", 
-        "barberia", "cosmética", "cosmetica", "psicología", "psicologia", "belleza", "salud"
-    ],
-    "retail": [
-        "tienda", "boutique", "ropa", "calzado", "indumentaria", "mercado", "bazar", 
-        "super", "supermercado", "joyería", "joyeria", "electrónica", "electronica", "comercial"
-    ],
-    "logistica": [
-        "flete", "fletes", "transporte", "mudanza", "mudanzas", "envío", "envio", 
-        "envíos", "envios", "logística", "logistica", "correo", "distribuidora", "cargas"
-    ],
-    "tecnologia": [
-        "software", "sistemas", "tech", "technology", "digital", "web", "desarrollo", 
-        "app", "apps", "informática", "informatica", "it", "ciberseguridad", "nube", "cloud"
-    ],
-    "servicios_hogar": [
-        "plomería", "plomeria", "electricidad", "electricista", "pintura", "refrigeración", 
-        "refrigeracion", "aire acondicionado", "cerrajería", "cerrajeria", "limpieza", "fumigación", "reformas"
-    ],
-    "educacion": [
-        "instituto", "academia", "colegio", "escuela", "cursos", "capacitación", 
-        "capacitacion", "clases", "universidad", "tutoría", "tutoria", "enseñanza"
-    ],
-    "inmobiliaria": [
-        "inmobiliaria", "propiedades", "bienes raíces", "bienes raices", "alquileres", "realtor"
-    ]
-}
 
 def inferir_categoria_por_rubro(rubro_o_nombre: str) -> str:
     """

@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="es" class="dark scroll-smooth" style="background-color: {{ theme.bg }};">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ nombre }} — Sitio Oficial Público & Vista Previa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="{{ theme.font_google }}" rel="stylesheet">
+    <style>
+        html, body { overflow-x: hidden; width: 100%; background-color: {{ theme.bg }}; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; padding: 0; scroll-behavior: smooth; }
+        .display-font { font-family: {{ theme.font_display }}; }
+        .glass-card { background: {{ theme.card_bg }}; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid {{ theme.border }}; box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.08); transition: all 0.25s ease; }
+        .glass-card:hover { border-color: {{ theme.border_hover }}; transform: translateY(-2px); }
+        .hero-banner-full {
+            position: relative;
+            width: 100%;
+            min-height: 540px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: linear-gradient(to bottom, rgba(7, 10, 18, 0.65) 0%, rgba(7, 10, 18, 0.75) 50%, {{ theme.bg }} 100%), url('{{ hero_bg_img }}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between antialiased hero-bg text-slate-100 overflow-x-hidden" style="background-color: {{ theme.bg }};">
+
+    <!-- EMAYOON FORGE COMMERCIAL B2B DOCK (SUPERIOR) -->
+    <div class="bg-slate-950 border-b border-amber-500/20 px-4 sm:px-6 py-2 flex flex-col sm:flex-row justify-between items-center text-xs backdrop-blur-xl z-50 gap-1.5 sm:gap-0">
+        <div class="flex items-center gap-2 font-medium text-center sm:text-left text-[11px] sm:text-xs">
+            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
+            <span class="text-slate-300">Propuesta Comercial B2B por <a href="https://emayonforge.com/" target="_blank" class="text-amber-400 font-bold hover:underline">Emayon Forge</a> para <strong class="text-white">{{ nombre }}</strong></span>
+        </div>
+        <div class="flex items-center gap-3 shrink-0">
+            <a href="#enterprise" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full transition-all flex items-center gap-1.5 shadow-md text-[11px] sm:text-xs">
+                <i class="fa-solid fa-arrow-down text-[10px]"></i> Ver Planes
+            </a>
+            <a href="https://emayonforge.com/" target="_blank" class="text-slate-400 hover:text-white transition-colors flex items-center gap-1 text-[10px] sm:text-[11px]">
+                emayonforge.com <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- STICKY NAVBAR PÚBLICO DEL CLIENTE -->
+    <header class="sticky top-0 z-40 backdrop-blur-xl border-b border-white/5 bg-slate-950/90 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+            <a href="#hero" class="flex items-center gap-2.5 sm:gap-3 group truncate max-w-[55%] sm:max-w-none">
+                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-bold text-white shadow-lg transition-transform group-hover:scale-105 shrink-0" style="background-color: {{ theme.accent }};">
+                    <i class="fa-solid fa-briefcase text-xs sm:text-sm"></i>
+                </div>
+                <span class="text-sm sm:text-base md:text-lg font-bold text-white tracking-tight display-font truncate">{{ nombre }}</span>
+            </a>
+
+            <!-- NAV LINKS PÚBLICOS -->
+            <nav class="hidden md:flex items-center gap-6 text-xs font-medium text-slate-300">
+                <a href="#hero" class="hover:text-white transition-colors">Inicio</a>
+                <a href="#servicios" class="hover:text-white transition-colors">Servicios</a>
+                {% if reviews_data %}
+                <a href="#reseñas" class="hover:text-white transition-colors">Opiniones</a>
+                {% endif %}
+                <a href="#contacto" class="hover:text-white transition-colors">Ubicación</a>
+            </nav>
+
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                {% if link_wa %}
+                <a href="{{ link_wa }}" target="_blank" class="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white font-bold py-1.5 px-3 sm:py-2 sm:px-4 rounded-xl border border-emerald-500/30 hover:border-emerald-500 transition-all text-xs flex items-center gap-1.5">
+                    <i class="fa-brands fa-whatsapp text-sm"></i> <span class="hidden sm:inline">WhatsApp</span>
+                </a>
+                {% endif %}
+                <a href="#enterprise" class="bg-white/10 hover:bg-white/20 text-white font-semibold py-1.5 px-3 sm:py-2 sm:px-4 rounded-xl border border-white/10 transition-all text-xs">
+                    Planes
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION 2-COLUMNAS VPS-STYLE -->
+    <section id="hero" class="hero-banner-full px-4 sm:px-6 py-12 sm:py-16 md:py-20">
+        <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-10 items-center z-10">
+
+            <!-- COLUMNA IZQUIERDA: Badge + Título + Descripción + CTAs -->
+            <div class="lg:col-span-3 space-y-5 sm:space-y-6 text-center lg:text-left">
+                <!-- Badge horizontal con datos reales -->
+                <div class="inline-flex items-center flex-wrap justify-center lg:justify-start gap-x-3 gap-y-1 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/10 text-[11px] sm:text-xs font-semibold shadow-lg">
+                    <span class="flex items-center gap-1.5 text-emerald-400">
+                        <i class="fa-solid fa-location-dot text-[10px]"></i> {{ ciudad_prospecto }}
+                    </span>
+                    <span class="text-slate-600 hidden sm:inline">•</span>
+                    <span class="flex items-center gap-1 text-amber-400">
+                        <i class="fa-solid fa-star text-[10px]"></i> {{ rating_general }} <span class="text-slate-400 font-normal">(Google Reviews)</span>
+                    </span>
+                    <span class="text-slate-600 hidden sm:inline">•</span>
+                    <span class="text-slate-300">{{ rubro }}</span>
+                </div>
+
+                <!-- Nombre del negocio -->
+                <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-extrabold text-white tracking-tight leading-[1.1] display-font break-words">
+                    {{ nombre }}
+                </h1>
+
+                <!-- Descripción real del negocio -->
+                <p class="text-sm sm:text-base text-slate-300 leading-relaxed max-w-xl mx-auto lg:mx-0">
+                    {{ descripcion_negocio }}
+                </p>
+
+                <!-- CTAs contextuales al rubro -->
+                <div class="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3 sm:gap-4 pt-1 w-full max-w-sm sm:max-w-none mx-auto lg:mx-0">
+                    <a href="#servicios" class="w-full sm:w-auto text-white font-extrabold py-3 sm:py-3.5 px-6 sm:px-7 rounded-2xl transition-all shadow-xl text-sm flex items-center justify-center gap-2" style="background: {{ theme.accent }}; box-shadow: 0 8px 24px -4px {{ theme.accent }}33;">
+                        <i class="fa-solid fa-calendar-check"></i> {{ cta_rubro_text }}
+                    </a>
+                    {% if link_wa %}
+                    <a href="{{ link_wa }}" target="_blank" class="w-full sm:w-auto bg-transparent hover:bg-white/5 text-white font-bold py-3 sm:py-3.5 px-6 sm:px-7 rounded-2xl border border-white/20 transition-all text-sm flex items-center justify-center gap-2">
+                        <i class="fa-brands fa-whatsapp text-emerald-400 text-lg"></i> Consultar por WhatsApp
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- COLUMNA DERECHA: Tarjeta ATENCIÓN DIRECTA -->
+            <div class="lg:col-span-2">
+                <div class="glass-card rounded-2xl sm:rounded-3xl p-5 sm:p-6 space-y-4 border border-white/10 shadow-2xl">
+                    <!-- Header de la tarjeta -->
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background: {{ theme.accent }}22; border: 1.5px solid {{ theme.accent }}44;">
+                                <i class="fa-solid fa-headset text-sm" style="color: {{ theme.accent }};"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm font-bold text-white tracking-tight">ATENCIÓN DIRECTA</div>
+                                <div class="flex items-center gap-1.5 text-[11px] text-emerald-400 font-medium">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Respuesta Inmediata
+                                </div>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-semibold text-slate-300 bg-slate-800/80 px-2.5 py-1 rounded-full border border-white/5 shrink-0">{{ ciudad_prospecto.split(',')[0] }}</span>
+                    </div>
+
+                    <!-- Horarios de Atención -->
+                    <div class="space-y-3 pt-1">
+                        <div class="flex items-start gap-2.5">
+                            <i class="fa-solid fa-calendar-days text-xs mt-0.5" style="color: {{ theme.accent }};"></i>
+                            <div>
+                                <div class="text-[11px] font-bold text-white italic">Horarios de Atención:</div>
+                                <div class="text-[11px] text-slate-400 leading-relaxed">{{ horarios_atencion }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Calidad Garantizada -->
+                        <div class="flex items-start gap-2.5">
+                            <i class="fa-solid fa-circle-check text-xs mt-0.5" style="color: {{ theme.accent }};"></i>
+                            <div>
+                                <div class="text-[11px] font-bold text-white italic">Calidad Garantizada:</div>
+                                <div class="text-[11px] text-slate-400 leading-relaxed">Diagnóstico, profesionalismo y atención personalizada.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CTA WhatsApp dentro de la tarjeta -->
+                    {% if link_wa %}
+                    <a href="{{ link_wa }}" target="_blank" class="flex items-center justify-center gap-2 w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold py-3 rounded-xl transition-all text-sm shadow-lg shadow-emerald-500/20">
+                        <i class="fa-brands fa-whatsapp text-lg"></i> Consultar por WhatsApp
+                    </a>
+                    {% else %}
+                    <a href="#servicios" class="flex items-center justify-center gap-2 w-full text-white font-extrabold py-3 rounded-xl transition-all text-sm shadow-lg" style="background: {{ theme.accent }}; box-shadow: 0 6px 20px -4px {{ theme.accent }}40;">
+                        <i class="fa-solid fa-arrow-down text-xs"></i> Ver Servicios
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN: GRILLA DE SERVICIOS -->
+    <main class="max-w-7xl mx-auto px-6 py-16 space-y-20">
+        <section id="servicios" class="space-y-10">
+            <div class="text-center space-y-2">
+                <span class="text-xs font-bold uppercase font-mono tracking-widest text-slate-400">Soluciones Integrales</span>
+                <h2 class="text-3xl font-extrabold text-white tracking-tight display-font">Servicios Destacados de {{ nombre }}</h2>
+                <p class="text-sm text-slate-400 max-w-xl mx-auto">Calidad garantizada y atención personalizada para cada cliente.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for feat in features_items %}
+                <div class="glass-card rounded-3xl overflow-hidden group flex flex-col justify-between transition-all duration-300 hover:-translate-y-1">
+                    <div>
+                        <div class="relative h-44 w-full overflow-hidden">
+                            <img src="{{ feat.img_path }}" alt="{{ feat.title }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" onerror="this.src='/static/img/services/{{ cat_visual }}_1.jpg'">
+                            
+                            <div class="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
+                                <div class="w-10 h-10 rounded-xl backdrop-blur-md flex items-center justify-center text-lg shadow-lg" style="background: rgba(15, 23, 42, 0.85); color: {{ theme.accent }}; border: 1px solid {{ theme.border }};">
+                                    <i class="fa-solid {{ feat.icon }}"></i>
+                                </div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full backdrop-blur-md shadow-md" style="background: rgba(15, 23, 42, 0.85); color: {{ theme.accent }}; border: 1px solid {{ theme.border }};">{{ feat.tag }}</span>
+                            </div>
+                        </div>
+
+                        <div class="p-6 space-y-3">
+                            <h3 class="text-lg font-bold text-white tracking-tight leading-snug display-font group-hover:text-amber-400 transition-colors">{{ feat.title }}</h3>
+                            <p class="text-xs text-slate-300 leading-relaxed">{{ feat.desc }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- BLOQUE: RATING GENERAL GOOGLE MAPS (SIEMPRE VISIBLE) -->
+        <section id="rating-google" class="glass-card p-5 sm:p-8 rounded-3xl text-center space-y-3">
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <div class="flex items-center gap-0.5 text-amber-400 text-xl sm:text-2xl">
+                    {% set rating_int = (rating_general|float|round(0, 'floor'))|int %}
+                    {% set has_half = (rating_general|float - rating_int) >= 0.3 %}
+                    {% for i in range(5) %}
+                        {% if i < rating_int %}
+                        <i class="fa-solid fa-star"></i>
+                        {% elif has_half and i == rating_int %}
+                        <i class="fa-solid fa-star-half-stroke"></i>
+                        {% else %}
+                        <i class="fa-regular fa-star text-slate-600"></i>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <span class="text-2xl sm:text-3xl font-black text-white display-font">{{ rating_general }}</span>
+                <span class="text-xs text-slate-400 font-mono">
+                    {% if total_reseñas > 0 %}({{ total_reseñas }} opiniones en Google){% else %}(Calificación Google Maps){% endif %}
+                </span>
+            </div>
+            <div class="flex items-center justify-center gap-2 text-[11px] text-slate-500">
+                <i class="fa-brands fa-google"></i>
+                <span>Datos verificados de Google Maps — {{ nombre }}</span>
+            </div>
+        </section>
+
+        <!-- SECCIÓN: RESEÑAS AUTÉNTICAS EN SLIDER HORIZONTAL (SIEMPRE VISIBLE) -->
+        <section id="reseñas" class="space-y-6">
+            <div class="text-center space-y-2">
+                <span class="text-xs font-bold uppercase font-mono tracking-widest text-slate-400">Confianza Comprobada</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight display-font">Opiniones Reales de Clientes</h2>
+                <p class="text-sm text-slate-400 max-w-xl mx-auto">Reseñas verificadas de quienes confían en {{ nombre }} en {{ ciudad_prospecto }}.</p>
+            </div>
+
+            {% if reviews_data %}
+            <!-- Slider de reviews con scroll-snap CSS -->
+            <div class="relative">
+                <div id="reviews-slider" class="flex gap-4 sm:gap-6 overflow-x-auto scroll-smooth pb-4" style="scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none;">
+                    <style>#reviews-slider::-webkit-scrollbar { display: none; }</style>
+                    {% for rev in reviews_data[:6] %}
+                    <div class="glass-card p-5 sm:p-6 rounded-2xl space-y-4 shrink-0 w-[85vw] sm:w-[340px] md:w-[360px]" style="scroll-snap-align: start;">
+                        <div class="flex items-center justify-between">
+                            <div class="flex text-amber-400 text-xs gap-0.5">
+                                {% for _ in range(rev.rating_num) %}
+                                <i class="fa-solid fa-star"></i>
+                                {% endfor %}
+                            </div>
+                            <span class="text-[11px] text-slate-400 font-mono flex items-center gap-1"><i class="fa-brands fa-google text-slate-500"></i> {{ rev.tiempo }}</span>
+                        </div>
+                        <p class="text-sm text-slate-300 italic leading-relaxed line-clamp-4">"{{ rev.texto }}"</p>
+                        <div class="flex items-center gap-3 pt-2 border-t border-white/5">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0" style="background-color: {{ theme.accent }}; font-family: {{ theme.font_display }};">
+                                {{ rev.autor_initial }}
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-xs font-bold text-white truncate">{{ rev.autor }}</div>
+                                <div class="text-[10px] text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-circle-check text-[8px]"></i> Verificada en Google Maps</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Indicadores de navegación del slider -->
+                <div class="flex items-center justify-center gap-2 pt-2">
+                    {% for rev in reviews_data[:6] %}
+                    <button onclick="document.getElementById('reviews-slider').scrollTo({left: {{ loop.index0 }} * (document.getElementById('reviews-slider').firstElementChild.offsetWidth + 16), behavior: 'smooth'})" class="w-2 h-2 rounded-full bg-white/20 hover:bg-white/60 transition-colors" aria-label="Ir a reseña {{ loop.index }}"></button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <!-- Fallback: sin reseñas reales disponibles -->
+            <div class="glass-card p-6 sm:p-8 rounded-2xl text-center space-y-3">
+                <div class="flex items-center justify-center gap-2 text-amber-400 text-lg">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
+                </div>
+                <p class="text-sm text-slate-300">Las opiniones de clientes de <strong class="text-white">{{ nombre }}</strong> se están recopilando desde Google Maps.</p>
+                <p class="text-[11px] text-slate-500 flex items-center justify-center gap-1.5"><i class="fa-brands fa-google"></i> Rating registrado: {{ rating_general }}★ en Google Maps</p>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- SECCIÓN: FOTOGRAFÍAS REALES DEL LOCAL (SIEMPRE VISIBLE) -->
+        <section id="galeria" class="space-y-6">
+            <div class="text-center space-y-2">
+                <span class="text-xs font-bold uppercase font-mono tracking-widest text-sky-400">Instalaciones & Establecimiento</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight display-font">Fotografías de {{ nombre }}</h2>
+                <p class="text-sm text-slate-400 max-w-xl mx-auto">
+                    {% if photos_data %}Imágenes autenticadas recopiladas de Google Maps.{% else %}Vista previa del establecimiento y sus instalaciones.{% endif %}
+                </p>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-5">
+                {% if photos_data %}
+                    {% for img_url in photos_data[:6] %}
+                    <div class="overflow-hidden rounded-2xl border border-white/10 shadow-xl group aspect-[4/3]">
+                        <img src="{{ img_url }}" alt="Fotografía real de {{ nombre }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" onerror="this.src='/static/img/services/{{ cat_visual }}_{{ loop.index }}.jpg'">
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    {% for i in range(1, 7) %}
+                    <div class="overflow-hidden rounded-2xl border border-white/10 shadow-xl group aspect-[4/3] relative">
+                        <img src="/static/img/services/{{ cat_visual }}_{{ i }}.jpg" alt="Imagen referencial de {{ rubro }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-80" loading="lazy" onerror="this.parentElement.style.display='none'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 to-transparent pointer-events-none"></div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </section>
+
+
+        <!-- SECCIÓN 5: UBICACIÓN & ATENCIÓN DIRECTA CON MAPA GOOGLE MAPS -->
+        <section id="contacto" class="glass-card p-8 md:p-10 rounded-3xl relative overflow-hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+                
+                <!-- COLUMNA IZQUIERDA: DATOS DE ATENCIÓN & CHAT -->
+                <div class="space-y-6 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <span class="text-xs font-bold uppercase font-mono tracking-widest text-emerald-400 flex items-center gap-2">
+                            <i class="fa-solid fa-location-dot"></i> Ubicación & Atención Directa
+                        </span>
+                        <h2 class="text-3xl font-extrabold text-white tracking-tight display-font">
+                            Atención Presencial & Canales Oficiales en {{ ciudad_prospecto }}
+                        </h2>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Estamos comprometidos a brindar respuestas rápidas y asesoría transparente. Contáctanos por nuestro canal directo o solicita una reunión comercial.
+                        </p>
+                    </div>
+
+                    <!-- DATOS CLAVE DE ATENCIÓN -->
+                    <div class="p-5 rounded-2xl bg-slate-950/60 border border-white/10 space-y-3 text-xs text-slate-300">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-clock text-amber-400 w-5 text-center"></i>
+                            <span><strong>Horarios:</strong> Lunes a Viernes: 08:00 - 18:30 | Sábados: 08:00 - 13:00 hs</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-map-location-dot text-sky-400 w-5 text-center"></i>
+                            <span><strong>Ciudad:</strong> {{ ciudad_prospecto }}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-globe text-indigo-400 w-5 text-center"></i>
+                            <span><strong>Dominio Exclusivo:</strong> {{ dominio }}</span>
+                        </div>
+                    </div>
+
+                    <!-- TARJETA CHAT WHATSAPP DIRECTO -->
+                    <div class="p-4 rounded-2xl bg-slate-950/80 border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center gap-3 text-left">
+                            <div class="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                                <i class="fa-solid fa-headset text-lg"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-white display-font">¿Dudas sobre el servicio?</h4>
+                                <p class="text-[11px] text-slate-400">Atención directa con nuestro equipo.</p>
+                            </div>
+                        </div>
+                        {% if link_wa %}
+                        <a href="{{ link_wa }}" target="_blank" class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs flex items-center gap-2 transition-all shrink-0 whitespace-nowrap shadow-md shadow-emerald-500/20">
+                            <i class="fa-brands fa-whatsapp text-sm"></i> Iniciar Chat
+                        </a>
+                        {% else %}
+                        <a href="#contacto" class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs flex items-center gap-2 transition-all shrink-0 whitespace-nowrap shadow-md shadow-emerald-500/20">
+                            <i class="fa-solid fa-envelope text-sm"></i> Contactar
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- COLUMNA DERECHA: GOOGLE MAPS INTERACTIVO CON FILTRO MODO OSCURO SOBRIO -->
+                <div class="relative w-full min-h-[360px] lg:h-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl flex flex-col">
+                    <iframe 
+                        title="Ubicación Google Maps de {{ nombre }}"
+                        src="https://maps.google.com/maps?q={{ (nombre + ', ' + ciudad_prospecto)|urlencode }}&t=&z=14&ie=UTF8&iwloc=&output=embed" 
+                        class="w-full h-full min-h-[300px] border-0 filter invert-[0.9] hue-rotate-180 contrast-[1.15] brightness-[0.95]"
+                        loading="lazy" 
+                        allowfullscreen>
+                    </iframe>
+
+                    <!-- BARRA INFERIOR CON ENLACE DIRECTO A GOOGLE MAPS -->
+                    <div class="absolute bottom-3 left-3 right-3 p-3 rounded-xl bg-slate-950/90 backdrop-blur-md border border-white/10 flex items-center justify-between text-xs shadow-lg">
+                        <div class="flex items-center gap-2 text-slate-200 font-medium truncate">
+                            <i class="fa-solid fa-compass text-emerald-400"></i>
+                            <span class="truncate">{{ ciudad_prospecto }}</span>
+                        </div>
+                        <a href="https://www.google.com/maps/search/?api=1&query={{ (nombre + ' ' + ciudad_prospecto)|urlencode }}" target="_blank" class="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 shrink-0 transition-colors">
+                            <span>Abrir en Google Maps</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- DIVISOR COMERCIAL MARKETINERO: "IMPULSÁ TU NEGOCIO" -->
+    <section class="w-full bg-slate-900 border-t-2 border-b-2 border-amber-400/40 py-10 px-6 text-slate-100 shadow-2xl relative z-30">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-4 text-left">
+                <div class="w-12 h-12 rounded-2xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400 text-2xl font-bold">
+                    <i class="fa-solid fa-rocket"></i>
+                </div>
+                <div>
+                    <span class="text-xs font-mono font-bold tracking-widest text-amber-400 uppercase flex items-center gap-1.5">
+                        <i class="fa-solid fa-bolt text-[10px]"></i> Crecimiento & Automatización B2B
+                    </span>
+                    <h3 class="text-xl md:text-2xl font-extrabold text-white tracking-tight">Impulsá la Presencia Digital de {{ nombre }} al Siguiente Nivel</h3>
+                    <p class="text-xs text-slate-300">Descubrí las capacidades enterprise y módulos avanzados desarrollados por Emayon Forge.</p>
+                </div>
+            </div>
+            <a href="#enterprise" class="px-6 py-3.5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-amber-400/20 transition-all">
+                Ver Módulos Enterprise <i class="fa-solid fa-arrow-down text-[10px]"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- CANVAS ENTERPRISE APPLE STYLE (FONDO BLANCO LÍMPIDO CON LOGO EMAYOON) -->
+    <section id="enterprise" class="w-full bg-white text-slate-950 py-20 px-6 relative z-20 border-b border-slate-200">
+        <div class="max-w-7xl mx-auto space-y-16">
+                
+                <!-- HEADER DE SECCIÓN CON LOGO EMAYOON FORGE -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-200 pb-8">
+                    <div class="space-y-3 max-w-3xl">
+                        <div class="inline-flex items-center gap-2 text-xs font-bold uppercase font-mono tracking-widest px-3.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-300">
+                            <i class="fa-solid fa-microchip text-amber-600"></i> Modelo de Acompañamiento & Software a Medida
+                        </div>
+                        <h2 class="text-3xl md:text-5xl font-black text-slate-950 tracking-tight leading-tight display-font">
+                            Cada empresa es única.<br><span class="text-sky-600">Su software también debe serlo.</span>
+                        </h2>
+                        <p class="text-slate-600 text-sm md:text-base leading-relaxed">
+                            En Emayon Forge reemplazamos las plantillas estándar por ingeniería de software a medida. Diseñamos e integramos ecosistemas digitales adaptados al volumen de su empresa, sus clientes y la experiencia comercial.
+                        </p>
+                    </div>
+
+                    <!-- BADGE LOGO EMAYOON FORGE -->
+                    <a href="https://emayonforge.com/" target="_blank" class="flex items-center gap-3.5 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-slate-300 transition-all group shadow-sm shrink-0">
+                        <div class="w-12 h-12 rounded-xl bg-slate-950 flex items-center justify-center text-amber-400 font-black text-2xl shadow-md group-hover:scale-105 transition-transform">
+                            ⚡
+                        </div>
+                        <div>
+                            <span class="text-xs font-black tracking-tight text-slate-950 uppercase block">EMAYON FORGE</span>
+                            <span class="text-[10px] font-mono text-slate-500 flex items-center gap-1">emayonforge.com <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i></span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- CUADRO COMPARATIVO VISTOSO: PLANTILLAS VS SOCIO DE INGENIERÍA -->
+                <div class="relative p-8 md:p-10 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 border border-slate-800 shadow-2xl overflow-hidden text-white">
+                    
+                    <div class="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 border-b border-slate-800 pb-6 relative z-10">
+                        <div>
+                            <span class="text-xs font-mono font-bold uppercase tracking-widest text-amber-400 flex items-center gap-2">
+                                <i class="fa-solid fa-scale-balanced"></i> Análisis de Modelo de Servicio
+                            </span>
+                            <h3 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight mt-1">¿Plantilla Barata o Ingeniería a Medida?</h3>
+                        </div>
+                        <span class="px-4 py-1.5 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-xs font-semibold">
+                            Diferenciación de Enfoque Operativo
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch relative z-10">
+                        
+                        <!-- LADO IZQUIERDO: PROVEEDOR CONVENCIONAL -->
+                        <div class="lg:col-span-6 p-6 rounded-2xl bg-rose-950/30 border border-rose-500/20 flex flex-col justify-between space-y-6 relative group hover:border-rose-500/40 transition-all">
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-mono font-bold uppercase tracking-wider">
+                                        Riesgo Operativo & Limitación
+                                    </span>
+                                    <i class="fa-solid fa-triangle-exclamation text-rose-400 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xl font-bold text-rose-300">Proveedor Convencional / Plantillas</h4>
+                                    <p class="text-xs text-rose-200/70 mt-1">Soluciones prehechas pensadas para negocios simples, no para empresas dinámicas.</p>
+                                </div>
+
+                                <ul class="space-y-3 pt-2">
+                                    <li class="flex items-start gap-3 text-xs text-rose-100/90 leading-relaxed">
+                                        <span class="w-5 h-5 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 mt-0.5 font-bold"><i class="fa-solid fa-xmark text-[10px]"></i></span>
+                                        <span><strong>Planes rígidos:</strong> Tarifas mensuales fijas con funcionalidades que no podés personalizar.</span>
+                                    </li>
+                                    <li class="flex items-start gap-3 text-xs text-rose-100/90 leading-relaxed">
+                                        <span class="w-5 h-5 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 mt-0.5 font-bold"><i class="fa-solid fa-xmark text-[10px]"></i></span>
+                                        <span><strong>Adapta tu negocio al software:</strong> Procesos forzados que crean cuellos de botella en la operación.</span>
+                                    </li>
+                                    <li class="flex items-start gap-3 text-xs text-rose-100/90 leading-relaxed">
+                                        <span class="w-5 h-5 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 mt-0.5 font-bold"><i class="fa-solid fa-xmark text-[10px]"></i></span>
+                                        <span><strong>Sin integraciones reales:</strong> Aislado de tu CRM, facturación o canales de venta.</span>
+                                    </li>
+                                    <li class="flex items-start gap-3 text-xs text-rose-100/90 leading-relaxed">
+                                        <span class="w-5 h-5 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 mt-0.5 font-bold"><i class="fa-solid fa-xmark text-[10px]"></i></span>
+                                        <span><strong>Soporte por tickets:</strong> Respuestas lentas sin conocer la urgencia comercial de tu PyME.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- LADO DERECHO: SOCIO DE INGENIERÍA EMAYON FORGE -->
+                        <div class="lg:col-span-6 p-6 md:p-7 rounded-2xl bg-gradient-to-b from-emerald-950/70 via-slate-900 to-emerald-950/80 border-2 border-emerald-400/50 flex flex-col justify-between space-y-6 relative shadow-[0_0_30px_rgba(16,185,129,0.15)] group hover:border-emerald-400 transition-all">
+                            <div class="absolute -top-3.5 left-6 px-4 py-1 rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-950 font-black text-[10px] uppercase tracking-widest shadow-lg flex items-center gap-1.5">
+                                <i class="fa-solid fa-crown text-[10px]"></i> RECOMENDADO PARA CRECIMIENTO B2B
+                            </div>
+                            
+                            <div class="space-y-4 pt-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-mono font-bold uppercase tracking-wider">
+                                        Ingeniería & Alto Valor
+                                    </span>
+                                    <i class="fa-solid fa-shield-halved text-emerald-400 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xl font-bold text-white">Socio de Ingeniería (Emayon Forge)</h4>
+                                    <p class="text-xs text-emerald-200/80 mt-1">Ecosistemas digitales moldeados 100% a la medida de tu empresa.</p>
+                                </div>
+
+                                <ul class="space-y-3 pt-2">
+                                    <li class="flex items-start gap-3 text-xs text-slate-100 leading-relaxed">
+                                        <span class="w-5 h-5 rounded-full bg-emerald-400 text-slate-950 flex items-center justify-center shrink-0 mt-0.5 font-black"><i class="fa-solid fa-check text-[10px]"></i></span>
+                                        <span><strong>Desarrollo 100% a medida:</strong> Arquitectura diseñada para tu rubro y volumen de operaciones.</span>
+                                    </li>
+                                    <li class="flex items-start gap-3 text-xs text-slate-100 leading-relaxed">
+                                        <span class="w-5 h-5 rounded-full bg-emerald-400 text-slate-950 flex items-center justify-center shrink-0 mt-0.5 font-black"><i class="fa-solid fa-check text-[10px]"></i></span>
+                                        <span><strong>El software se moldea a vos:</strong> Flujos optimizados que aceleran la conversión y agilizan ventas.</span>
+                                    </li>
+                                    <li class="flex items-start gap-3 text-xs text-slate-100 leading-relaxed">
+                                        <span class="w-5 h-5 rounded-full bg-emerald-400 text-slate-950 flex items-center justify-center shrink-0 mt-0.5 font-black"><i class="fa-solid fa-check text-[10px]"></i></span>
+                                        <span><strong>Integraciones nativas:</strong> Conexión directa con WhatsApp IA, CRM y sistemas de gestión.</span>
+                                    </li>
+                                    <li class="flex items-start gap-3 text-xs text-slate-100 leading-relaxed">
+                                        <span class="w-5 h-5 rounded-full bg-emerald-400 text-slate-950 flex items-center justify-center shrink-0 mt-0.5 font-black"><i class="fa-solid fa-check text-[10px]"></i></span>
+                                        <span><strong>Acompañamiento humano:</strong> Capacitación in-situ/remota para tu equipo y SLA prioritario 24/7.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- LA RUTA DE TRANSFORMACIÓN EN 4 FASES -->
+                <div class="space-y-8">
+                    <div class="text-center space-y-2">
+                        <span class="text-xs font-mono font-bold uppercase tracking-widest text-sky-600">Metodología Ejecutiva</span>
+                        <h3 class="text-2xl md:text-3xl font-extrabold text-slate-950">La Ruta de Transformación Digital</h3>
+                        <p class="text-xs text-slate-500 max-w-xl mx-auto">Cuatro etapas estratégicas estructuradas para garantizar retorno de inversión y adopción operativa sin interrupción del servicio.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- FASE 1 -->
+                        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-4 hover:border-sky-300 hover:shadow-md transition-all group relative">
+                            <div class="flex justify-between items-center">
+                                <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-lg border border-sky-200">
+                                    <i class="fa-solid fa-magnifying-glass-chart"></i>
+                                </div>
+                                <span class="text-2xl font-black font-mono text-slate-300 group-hover:text-sky-500/40 transition-colors">01</span>
+                            </div>
+                            <h4 class="text-base font-bold text-slate-950">Diagnóstico & Auditoría</h4>
+                            <p class="text-xs text-slate-600 leading-relaxed">Revisamos la operación comercial, adquisición de clientes y cuellos de botella en conversión.</p>
+                            <ul class="text-[11px] text-slate-500 space-y-1.5 pt-2 border-t border-slate-200">
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-sky-600"></i> Relevamiento in-situ / remoto</li>
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-sky-600"></i> Mapeo de integraciones de software</li>
+                            </ul>
+                        </div>
+
+                        <!-- FASE 2 -->
+                        <div class="p-6 rounded-2xl bg-slate-900 text-white border border-slate-800 space-y-4 shadow-xl relative group">
+                            <div class="flex justify-between items-center">
+                                <div class="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-lg shadow-md">
+                                    <i class="fa-solid fa-code-branch"></i>
+                                </div>
+                                <span class="text-2xl font-black font-mono text-slate-700">02</span>
+                            </div>
+                            <h4 class="text-base font-bold text-white">Arquitectura & Desarrollo</h4>
+                            <p class="text-xs text-slate-300 leading-relaxed">Construimos el portal institucional, agentes de IA en WhatsApp para atención 24/7 y sincronización de sistemas.</p>
+                            <ul class="text-[11px] text-slate-400 space-y-1.5 pt-2 border-t border-slate-800">
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-amber-400"></i> Portal web de alta velocidad</li>
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-amber-400"></i> Automatización de respuestas & ventas</li>
+                            </ul>
+                        </div>
+
+                        <!-- FASE 3 -->
+                        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-4 hover:border-sky-300 hover:shadow-md transition-all group relative">
+                            <div class="flex justify-between items-center">
+                                <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-lg border border-sky-200">
+                                    <i class="fa-solid fa-user-shield"></i>
+                                </div>
+                                <span class="text-2xl font-black font-mono text-slate-300 group-hover:text-sky-500/40 transition-colors">03</span>
+                            </div>
+                            <h4 class="text-base font-bold text-slate-950">Adopción & Capacitación</h4>
+                            <p class="text-xs text-slate-600 leading-relaxed">Entrenamos a tu equipo comercial y administrativo para asegurar una transición sin fricción operativa.</p>
+                            <ul class="text-[11px] text-slate-500 space-y-1.5 pt-2 border-t border-slate-200">
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-sky-600"></i> Pruebas en entorno controlado</li>
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-sky-600"></i> Talleres prácticos por equipo</li>
+                            </ul>
+                        </div>
+
+                        <!-- FASE 4 -->
+                        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-4 hover:border-sky-300 hover:shadow-md transition-all group relative">
+                            <div class="flex justify-between items-center">
+                                <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-lg border border-sky-200">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                </div>
+                                <span class="text-2xl font-black font-mono text-slate-300 group-hover:text-sky-500/40 transition-colors">04</span>
+                            </div>
+                            <h4 class="text-base font-bold text-slate-950">Co-Evolución & SLA 24/7</h4>
+                            <p class="text-xs text-slate-600 leading-relaxed">Somos tu departamento de tecnología extendido. Acompañamos el crecimiento e incorporación de nuevas unidades de negocio.</p>
+                            <ul class="text-[11px] text-slate-500 space-y-1.5 pt-2 border-t border-slate-200">
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-sky-600"></i> Soporte prioritario dedicado</li>
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-angle-right text-sky-600"></i> Auditorías trimestrales de mejora</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ADQUISICIÓN ESTRATÉGICA & CTA HIGH-TICKET -->
+                <div class="p-8 rounded-3xl bg-slate-900 text-white flex flex-col md:flex-row justify-between items-center gap-8 shadow-xl">
+                    <div class="space-y-2 text-center md:text-left">
+                        <div class="inline-flex items-center gap-2 text-[10px] font-mono font-bold uppercase tracking-widest text-amber-400 px-3 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20">
+                            <i class="fa-solid fa-calendar-check"></i> Diagnóstico Operativo Sin Cargo
+                        </div>
+                        <h3 class="text-lg sm:text-xl md:text-2xl font-black tracking-tight text-white break-words">¿Listo para dimensionar la transformación de {{ nombre }}?</h3>
+                        <p class="text-xs text-slate-300 max-w-xl">Coordinemos una sesión ejecutiva de 30 minutos con nuestros ingenieros para evaluar sus flujos actuales y diseñar la propuesta técnica a medida.</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row items-center gap-3 shrink-0">
+                        {% if link_wa %}
+                        <a href="{{ link_wa }}" target="_blank" class="px-8 py-4 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-amber-400/20 transition-all whitespace-nowrap">
+                            <i class="fa-solid fa-headset text-sm"></i> Agendar Diagnóstico Operativo
+                        </a>
+                        {% else %}
+                        <a href="#contacto" class="px-8 py-4 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-amber-400/20 transition-all whitespace-nowrap">
+                            <i class="fa-solid fa-headset text-sm"></i> Agendar Diagnóstico Operativo
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- INFRAESTRUCTURA & SEGURIDAD -->
+                <div class="pt-8 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-6 text-xs text-slate-500">
+                    <span class="font-mono font-bold tracking-widest uppercase text-slate-400">ESTÁNDARES DE INGENIERÍA EMAYON:</span>
+                    <div class="flex flex-wrap items-center gap-8 font-semibold text-slate-700">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-emerald-600 text-base"></i>
+                            <span>Infraestructura Cloud High-Availability 99.9%</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-bolt text-amber-500 text-base"></i>
+                            <span>Despliegue & Soporte Directo por Emayon Forge</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    <!-- FOOTER PÚBLICO -->
+    <footer class="bg-slate-950 border-t border-white/10 px-6 py-8 text-center text-xs text-slate-400 space-y-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <p>© 2026 <strong>{{ nombre }}</strong>. Todos los derechos reservados.</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="#hero" class="hover:text-white transition-colors">Volver arriba</a>
+                <a href="#enterprise" class="text-amber-400 font-bold hover:underline">Propuesta Comercial</a>
+            </div>
+        </div>
+        <div class="pt-4 border-t border-white/5 text-[11px] text-slate-500">
+            Diseñado e impulsado con la tecnología de <a href="https://emayonforge.com/" target="_blank" class="text-slate-400 hover:text-white font-medium">Emayon Forge</a> — 
+            <a href="https://emayonforge.com/" target="_blank" class="text-amber-400/80 hover:text-amber-400 font-bold">
+                www.emayonforge.com <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+            </a>
+        </div>
+    </footer>
+
+</body>
+</html>

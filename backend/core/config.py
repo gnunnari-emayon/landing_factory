@@ -1,6 +1,10 @@
 import os
 from dotenv import load_dotenv
 
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+load_dotenv(dotenv_path=BASE_DIR / ".env")
 load_dotenv()
 
 class Config:
@@ -13,6 +17,7 @@ class Config:
         "sqlite:///crm_factory.db"
     )
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
-    GOOGLE_PLACES_API_KEY: str = os.getenv("GOOGLE_PLACES_API_KEY", "")
+    GOOGLE_PLACES_API_KEY: str = os.getenv("GOOGLE_PLACES_API_KEY") or os.getenv("GOOGLE_SERVER_API_KEY") or ""
+    GOOGLE_SERVER_API_KEY: str = os.getenv("GOOGLE_SERVER_API_KEY") or os.getenv("GOOGLE_PLACES_API_KEY") or ""
 
 config = Config()

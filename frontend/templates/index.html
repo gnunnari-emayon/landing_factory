@@ -354,15 +354,12 @@
                                     className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 ${activeTab === 'prospector' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-400 hover:text-white'}`}>
                                     <i className="fa-solid fa-location-dot text-emerald-400"></i> Prospector Google Maps
                                 </button>
-                                <button 
-                                    onClick={() => setActiveTab('focusgroup')}
-                                    className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 ${activeTab === 'focusgroup' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-400 hover:text-white'}`}>
-                                    <i className="fa-solid fa-comments text-pink-400"></i> Focus Group AI
-                                </button>
+                                <a href="/autocentro/" target="_blank" className="px-4 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 text-amber-400 hover:text-white hover:bg-gray-800">
+                                    <i className="fa-solid fa-car text-amber-400"></i> Demo AutoCentro (Gomerías & Lubricentros) ↗
+                                </a>
                                 <button 
                                     onClick={() => setActiveTab('campaigns')}
                                     className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 ${activeTab === 'campaigns' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-400 hover:text-white'}`}>
-                                    <i className="fa-solid fa-bullseye text-amber-400"></i> Campañas & Clientes
                                 </button>
                             </nav>
                         </div>

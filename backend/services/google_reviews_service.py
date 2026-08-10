@@ -6,12 +6,13 @@ import re
 from bs4 import BeautifulSoup
 from backend.core.config import config
 
-def obtener_resenas_reales_google(nombre: str, ciudad: str) -> list[dict] | None:
+def obtener_resenas_reales_google(nombre: str, ciudad: str = "Argentina") -> list[dict] | None:
     """
     Verifica y extrae las reseñas reales de Google Maps / Business para una empresa.
     Retorna una lista de dicts con {'name': ..., 'comment': ..., 'rating': ..., 'city': ...}
     o None si la empresa NO tiene reseñas auténticas verificables en Google.
     """
+    ciudad = ciudad or "Argentina"
     if not nombre or len(nombre) < 2:
         return None
 

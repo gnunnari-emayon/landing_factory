@@ -1,25 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
 // Design Tokens - Emayon Forge Standard (Vibrant & Premium Dark/Light)
 :root {
   --color-primary: #6366f1;
   --color-primary-hover: #4f46e5;
   --color-secondary: #06b6d4;
   --color-accent: #10b981;
-  --color-bg-dark: #0f172a;
-  --color-bg-card: #1e293b;
+  --color-bg-dark: #0b0f19;
+  --color-bg-card: #111827;
   --color-bg-light: #f8fafc;
   --color-text-main: #f8fafc;
   --color-text-muted: #94a3b8;
-  --color-border: #334155;
+  --color-border: #1f293d;
+  --color-border-glow: rgba(255, 255, 255, 0.08);
   
-  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --radius-sm: 6px;
+  --font-display: 'Outfit', 'Inter', system-ui, sans-serif;
+  --font-body: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  --font-family-base: var(--font-body);
+
+  --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 20px;
   
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
   
-  --transition-fast: 0.2s ease-in-out;
-  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-normal: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
+

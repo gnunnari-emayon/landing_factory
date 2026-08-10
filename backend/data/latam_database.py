@@ -3,18 +3,10 @@ Base de datos de Rubros Comerciales y Ciudades / Provincias de Latinoamérica
 para autocompletado e inferencia inteligente de búsquedas B2B.
 """
 
-RUBROS_LATAM = [
-    {"id": "metalurgica", "nombre": "Metalúrgica & Herrería", "synonyms": ["metalurgica", "herreria", "talleres metalurgicos", "aluminio"]},
-    {"id": "cafeteria", "nombre": "Cafetería & Gastronomía", "synonyms": ["cafeteria", "cafe", "bar", "resto", "restaurante", "gourmet"]},
-    {"id": "fletes", "nombre": "Fletes & Logística", "synonyms": ["fletes", "mudanzas", "logistica", "transporte", "envios"]},
-    {"id": "odontologo", "nombre": "Odontología & Salud Dental", "synonyms": ["odontologo", "dentista", "clinica dental", "ortodoncia"]},
-    {"id": "taller_mecanico", "nombre": "Taller Mecánico & Automotor", "synonyms": ["taller mecanico", "mecanica", "repuestos", "lubricentro"]},
-    {"id": "estetica", "nombre": "Estética & Peluquería", "synonyms": ["estetica", "peluqueria", "barberia", "spa", "centro de estetica"]},
-    {"id": "abogado", "nombre": "Estudio Jurídico & Abogados", "synonyms": ["abogado", "estudio juridico", "legales", "derecho"]},
-    {"id": "contabilidad", "nombre": "Estudio Contable & Asesoría", "synonyms": ["contador", "estudio contable", "impuestos", "finanzas"]},
-    {"id": "inmobiliaria", "nombre": "Inmobiliaria & Bienes Raíces", "synonyms": ["inmobiliaria", "propiedades", "alquileres", "bienes raices"]},
-    {"id": "construccion", "nombre": "Construcción & Corralón", "synonyms": ["construccion", "corralon", "arquitectura", "reformas"]}
-]
+from backend.domain.rubros import RUBROS_MASTER
+
+RUBROS_LATAM = RUBROS_MASTER
+
 
 UBICACIONES_LATAM = [
     # Argentina

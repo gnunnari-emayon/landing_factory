@@ -1,12 +1,19 @@
 <header class="main-header">
   <div class="container header-container">
-    <a href="/" class="brand-logo">
-      ⚡ Nicho Landing <span class="brand-highlight">Factory</span>
-    </a>
+    <div class="header-brand-row">
+      <a href="/" class="brand-logo">
+        ⚡ Nicho Landing <span class="brand-highlight">Factory</span>
+      </a>
+      <span class="badge badge-tecnologia env-badge">v2.4 Enterprise</span>
+    </div>
     <nav class="main-nav">
-      <a href="/prospector" class="{% if active_tab == 'prospector' %}active{% endif %}"><i class="fa-solid fa-location-dot" style="color: #10b981;"></i> Prospector Google Maps</a>
-      <a href="/focus-group" class="{% if active_tab == 'focusgroup' %}active{% endif %}"><i class="fa-solid fa-comments" style="color: #ec4899;"></i> Focus Group AI</a>
-      <a href="/campanias" class="{% if active_tab == 'campaigns' %}active{% endif %}"><i class="fa-solid fa-bullseye" style="color: #f59e0b;"></i> Campañas & Clientes</a>
+      <a href="/prospector" class="nav-pill {% if active_tab == 'prospector' %}active{% endif %}">
+        <i class="fa-solid fa-location-dot" style="color: #38bdf8;"></i> Prospector Maps
+      </a>
+      <a href="/autocentro/" target="_blank" class="nav-pill">
+        <i class="fa-solid fa-car" style="color: #f59e0b;"></i> Demo AutoCentro ↗
+      </a>
     </nav>
   </div>
 </header>
+
